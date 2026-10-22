@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "icao": "EZY",
+  "displayName": "easyJet UK - generic fallback",
+  "revision": 4,
+  "operations": {
+    "FirstDeparture": {
+      "services": {
+        "Cleaning": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Catering": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Refuelling": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Water": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Lavatory": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Boarding": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        }
+      },
+      "servicePhases": {
+        "Cleaning": 2,
+        "Catering": 3,
+        "Refuelling": 3,
+        "Water": 3,
+        "Lavatory": 3,
+        "Boarding": 7
+      }
+    },
+    "Turnaround": {
+      "services": {
+        "Cleaning": {
+          "policy": "Ask",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Catering": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Refuelling": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Water": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Lavatory": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Boarding": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        }
+      },
+      "servicePhases": {
+        "Cleaning": 2,
+        "Catering": 3,
+        "Refuelling": 3,
+        "Water": 3,
+        "Lavatory": 3,
+        "Boarding": 7
+      }
+    },
+    "FinalArrival": {
+      "services": {
+        "Cleaning": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Catering": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Refuelling": {
+          "policy": "Disabled",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Water": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Lavatory": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        },
+        "Boarding": {
+          "policy": "Disabled",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation",
+          "applicability": "AllOperations"
+        }
+      },
+      "servicePhases": null
+    }
+  },
+  "familyOverrides": {
+    "A320_FAMILY": {
+      "canonicalIdentity": "A320_FAMILY",
+      "operations": {
+        "FirstDeparture": {
+          "services": {},
+          "servicePhases": null
+        },
+        "Turnaround": {
+          "services": {},
+          "servicePhases": null
+        }
+      }
+    }
+  },
+  "typeOverrides": {
+    "A320": {
+      "canonicalIdentity": "A320",
+      "operations": {
+        "FirstDeparture": {
+          "services": {},
+          "servicePhases": null
+        }
+      }
+    },
+    "A20N": {
+      "canonicalIdentity": "A20N",
+      "operations": {
+        "Turnaround": {
+          "services": {},
+          "servicePhases": null
+        }
+      }
+    }
+  },
+  "realism": {
+    "probabilityPercent": null,
+    "maximumDelayMinutes": null
+  }
+}

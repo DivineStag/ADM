@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Chat" xml:space="preserve"><value>Chat</value></data>
+  <data name="Services" xml:space="preserve"><value>Services</value></data>
+  <data name="Flight" xml:space="preserve"><value>Flight</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="RealismTitle" xml:space="preserve"><value>Operational realism</value></data>
+  <data name="AllowDelays" xml:space="preserve"><value>Allow occasional simulated delays</value></data>
+  <data name="DelayChance" xml:space="preserve"><value>Chance of a delay</value></data>
+  <data name="MaximumDelay" xml:space="preserve"><value>Maximum delay</value></data>
+  <data name="RealismNote" xml:space="preserve"><value>Applies to new operations. At most one simulated incident per eligible turnaround. Real GSX holds remain separate; skip simulated delays in Chat.</value></data>
+  <data name="ProfileFiles" xml:space="preserve"><value>Profile files</value></data>
+  <data name="ImportProfile" xml:space="preserve"><value>Import profile…</value></data>
+  <data name="ExportProfile" xml:space="preserve"><value>Export profile…</value></data>
+  <data name="AirlineRealism" xml:space="preserve"><value>Airline realism tuning</value></data>
+  <data name="AirlineRealismNote" xml:space="preserve"><value>Leave blank to inherit. Airline limits can shorten the global maximum, never extend it. Save for future operations.</value></data>
+  <data name="AirlineDelayChance" xml:space="preserve"><value>Delay chance (%)</value></data>
+  <data name="AirlineMaximumDelay" xml:space="preserve"><value>Maximum delay (minutes)</value></data>
+  <data name="ProfileFilesNote" xml:space="preserve"><value>Imports are validated and staged for review. Saving affects future operations only.</value></data>
+  <data name="ImportProfileTitle" xml:space="preserve"><value>Import handling profile</value></data>
+  <data name="ExportProfileTitle" xml:space="preserve"><value>Export handling profile</value></data>
+</root>

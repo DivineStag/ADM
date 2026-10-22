@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ADM airline service preferences v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "icao",
+    "displayName",
+    "revision",
+    "operations",
+    "familyOverrides",
+    "typeOverrides"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "icao": {
+      "type": "string",
+      "pattern": "^(GENERIC|[A-Z]{3})$"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "operations": {
+      "$ref": "#/$defs/operations"
+    },
+    "familyOverrides": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z0-9_]{2,24}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/override"
+      }
+    },
+    "typeOverrides": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z0-9]{2,4}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/override"
+      }
+    }
+  },
+  "$defs": {
+    "serviceKind": {
+      "enum": [
+        "Cleaning",
+        "Catering",
+        "Refuelling",
+        "Water",
+        "Lavatory",
+        "Boarding"
+      ]
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "required",
+        "dependencies",
+        "applicabilityRule"
+      ],
+      "properties": {
+        "policy": {
+          "enum": [
+            "Automatic",
+            "Ask",
+            "Disabled"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/serviceKind"
+          }
+        },
+        "applicabilityRule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applicability": {
+          "enum": [
+            "AllOperations",
+            "DepartureOnly",
+            "ArrivalOnly"
+          ]
+        }
+      }
+    },
+    "operations": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "FirstDeparture",
+          "Turnaround",
+          "FinalArrival"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "services"
+        ],
+        "properties": {
+          "services": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/serviceKind"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/rule"
+            }
+          },
+          "servicePhases": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "Cleaning",
+                  "Catering",
+                  "Refuelling",
+                  "Water",
+                  "Lavatory",
+                  "Boarding"
+                ],
+                "properties": {
+                  "Cleaning": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "Catering": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "Refuelling": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "Water": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "Lavatory": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  "Boarding": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  }
+                },
+                "description": "All seven services; boarding must be strictly after every ground service. Lower phases finish first; equal phases allow validated overlap. Runtime additionally rejects dependency cycles."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonicalIdentity",
+        "operations"
+      ],
+      "properties": {
+        "canonicalIdentity": {
+          "type": "string",
+          "minLength": 2
+        },
+        "operations": {
+          "$ref": "#/$defs/operations"
+        }
+      }
+    }
+  }
+}

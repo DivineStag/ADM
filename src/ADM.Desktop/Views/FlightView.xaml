@@ -1,0 +1,43 @@
+<UserControl x:Class="ADM.Desktop.Views.FlightView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,5,0">
+        <StackPanel>
+            <TextBlock Text="Flight" Style="{StaticResource PageTitle}" />
+            <StackPanel DataContext="{Binding Live}">
+                <Border Style="{StaticResource Card}"><StackPanel>
+                    <TextBlock Text="Current flight" Style="{StaticResource CardTitle}" />
+                    <TextBlock Text="{Binding FlightLabel}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,12" />
+                    <TextBlock Text="{Binding LoadLabel}" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+                    <TextBlock Text="{Binding ProfileLabel}" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+                    <TextBlock Text="{Binding ConnectionLabel}" Foreground="{DynamicResource Accent}" Margin="0,0,0,12" />
+                    <TextBlock Text="Flight details come from the plan already loaded in GSX. Load figures are planned values." Style="{StaticResource Caption}" />
+                </StackPanel></Border>
+                <Expander Style="{StaticResource SimpleExpander}" Header="Enter a flight manually" IsExpanded="{Binding ShowManualEntry}" Margin="0,0,0,16"><Border Style="{StaticResource Card}"><StackPanel>
+                    <TextBlock Text="Use this if GSX has no usable flight plan." Style="{StaticResource Caption}" Margin="0,0,0,14" />
+                    <TextBlock Text="ATC callsign" Style="{StaticResource Caption}" /><TextBox Text="{Binding Callsign, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Manual ATC callsign" Margin="0,6,0,10" />
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,8,0"><TextBlock Text="From" Style="{StaticResource Caption}" /><TextBox Text="{Binding Origin, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Manual origin airport" Margin="0,6,0,10" /></StackPanel>
+                        <StackPanel Grid.Column="1"><TextBlock Text="To" Style="{StaticResource Caption}" /><TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Manual destination airport" Margin="0,6,0,10" /></StackPanel>
+                    </Grid>
+                    <TextBlock Text="ICAO aircraft type" Style="{StaticResource Caption}" /><TextBox Text="{Binding AircraftType, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Manual ICAO aircraft type" Margin="0,6,0,14" />
+                    <Button Content="Use manual flight" Command="{Binding ManualCommand}" HorizontalAlignment="Left" />
+                </StackPanel></Border></Expander>
+                <Border Style="{StaticResource Card}"><StackPanel>
+                    <TextBlock Text="Next flight" Style="{StaticResource CardTitle}" />
+                    <TextBlock Text="{Binding NextFlightLabel}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <TextBlock Text="When the next plan arrives in GSX, confirm the new sector in Chat. Previous handling stays in history." Style="{StaticResource Caption}" />
+                </StackPanel></Border>
+                <Expander Style="{StaticResource SimpleExpander}" x:Name="HistorySection" Header="Sector history" Margin="0,0,0,16"><Border Style="{StaticResource Card}"><StackPanel>
+                    <TextBlock Text="{Binding DutyLabel}" Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding SectorHistory}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,8,0,8" /></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                    <Button Content="Load archived conversations" Command="{Binding HistoryCommand}" HorizontalAlignment="Left" Margin="0,8,0,8" />
+                    <ItemsControl ItemsSource="{Binding HistoryMessages}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Style="{StaticResource Caption}" Margin="0,5,0,5" /></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel></Border></Expander>
+                <Expander Style="{StaticResource SimpleExpander}" Header="Flight options" Margin="0,0,0,16"><Border Style="{StaticResource Card}"><StackPanel>
+                    <TextBlock Text="Handling type" Style="{StaticResource Caption}" /><ComboBox ItemsSource="{Binding OperationChoices}" SelectedItem="{Binding SelectedOperation}" AutomationProperties.Name="Live operation type" Margin="0,6,0,12" />
+                    <TextBlock Text="Airline profile" Style="{StaticResource Caption}" /><ComboBox ItemsSource="{Binding Airlines}" SelectedItem="{Binding SelectedAirline}" AutomationProperties.Name="Live airline override" Margin="0,6,0,12" />
+                    <TextBlock Text="Changes apply when the next handling session starts." Style="{StaticResource Caption}" />
+                </StackPanel></Border></Expander>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ADM.Domain\ADM.Domain.csproj" />
+    <ProjectReference Include="..\ADM.Contracts\ADM.Contracts.csproj" />
+<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+  </ItemGroup>
+</Project>
+

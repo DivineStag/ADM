@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ADM.Contracts\ADM.Contracts.csproj" />
+
+  </ItemGroup>
+</Project>
+

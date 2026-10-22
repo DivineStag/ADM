@@ -1,0 +1,41 @@
+<UserControl x:Class="ADM.Desktop.Views.SettingsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,5,0"><StackPanel>
+        <TextBlock Text="Settings" Style="{StaticResource PageTitle}" />
+        <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="Make it yours" Style="{StaticResource CardTitle}" />
+            <TextBlock Text="Colour theme" Style="{StaticResource Caption}" Margin="0,0,0,6" />
+            <ComboBox x:Name="ThemePicker" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" AutomationProperties.Name="Colour theme" />
+            <CheckBox Content="Mute message sounds" IsChecked="{Binding Muted}" Margin="0,16,0,0" />
+            <Expander Header="Sound volume" Style="{StaticResource SimpleExpander}" Margin="0,8,0,0"><StackPanel>
+                <Slider Value="{Binding Volume}" Minimum="0" Maximum="100" AutomationProperties.Name="Notification volume" Margin="0,12,0,10" />
+                <Button Content="Test sound" Command="{Binding PreviewSoundCommand}" HorizontalAlignment="Left" />
+                <TextBlock Text="{Binding SoundStatus}" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+            </StackPanel></Expander>
+        </StackPanel></Border>
+        <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="Ground handling" Style="{StaticResource CardTitle}" />
+            <CheckBox Content="Occasional simulated delays" IsChecked="{Binding RealismEnabled}" />
+            <TextBlock Text="Optional gate and passenger delays. You can skip them in Chat." Style="{StaticResource Caption}" Margin="0,8,0,12" />
+            <Expander x:Name="RealismSettings" Header="Delay limits" Style="{StaticResource SimpleExpander}"><StackPanel Margin="0,10,0,0">
+                <TextBlock Text="{Binding DelayProbabilityPercent, StringFormat=Chance per turnaround: {0}%}" Style="{StaticResource Caption}" />
+                <Slider Value="{Binding DelayProbabilityPercent}" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" AutomationProperties.Name="Simulated delay probability percent" />
+                <TextBlock Text="{Binding MaximumDelayMinutes, StringFormat=Maximum delay: {0} minutes}" Style="{StaticResource Caption}" Margin="0,12,0,0" />
+                <Slider Value="{Binding MaximumDelayMinutes}" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Maximum simulated delay in minutes" />
+            </StackPanel></Expander>
+        </StackPanel></Border>
+        <Expander Header="Help &amp; support" Style="{StaticResource SimpleExpander}" Margin="0,0,0,14"><Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="{Binding Updates.Status}" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+            <WrapPanel Margin="0,0,0,14">
+                <Button Content="Check for updates" Command="{Binding Updates.CheckCommand}" Margin="0,0,8,0" />
+                <Button Content="Install update" Command="{Binding Updates.InstallCommand}" Visibility="{Binding Updates.Available, Converter={StaticResource VisibleIf}}" />
+            </WrapPanel>
+            <TextBlock Text="ADM connects automatically and reads the plan already loaded in GSX. It asks in Chat before starting services." Style="{StaticResource Caption}" Margin="0,0,0,12" />
+            <TextBlock Text="Keep Any2GSX aircraft integration if needed, with its service automation off. ADM remembers your aircraft setup." Style="{StaticResource Caption}" Margin="0,0,0,12" />
+            <Button Content="Review aircraft setup" Command="{Binding Live.ReviewSetupCommand}" HorizontalAlignment="Left" />
+            <Button Content="Save support report" Command="{Binding ExportDiagnosticsCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+            <TextBlock Text="The report excludes chat, flight plans and personal paths. Nothing is sent automatically." Style="{StaticResource Caption}" Margin="0,10,0,0" />
+            <TextBlock Text="{Binding SupportStatus}" Style="{StaticResource Caption}" Margin="0,8,0,0" />
+            <TextBlock Text="Freeware beta · Aircraft Dispatch Manager" Style="{StaticResource Caption}" Margin="0,16,0,0" />
+        </StackPanel></Border></Expander>
+    </StackPanel></ScrollViewer>
+</UserControl>

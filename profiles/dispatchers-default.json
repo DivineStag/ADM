@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 1,
+  "personas": [
+    {
+      "id": "sample-sarah",
+      "name": "Sarah",
+      "tone": "WarmProfessional",
+      "language": "en-GB",
+      "templates": {
+        "welcome": [
+          {
+            "text": "Hi! I'll look after the ground services and check with you before boarding and closing up.",
+            "weight": 1
+          },
+          {
+            "text": "Hello! I'll coordinate the ground services and ask before we board or disconnect.",
+            "weight": 1
+          }
+        ],
+        "boarding.approval": [
+          {
+            "text": "Fuel's complete and we're all set this end. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.no-fuel": [
+          {
+            "text": "The required services and gate checks are ready. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready for boarding this end. Shall I get everyone on?",
+            "weight": 1
+          }
+        ],
+        "closure.approval": [
+          {
+            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "weight": 1
+          }
+        ],
+        "handover.verified": [
+          {
+            "text": "Doors and ground equipment are confirmed clear. Pushback's over to you. Have a good flight!",
+            "weight": 1
+          },
+          {
+            "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.attested": [
+          {
+            "text": "Ground handling is complete with your manual release confirmations recorded. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.simulated": [
+          {
+            "text": "The simulated doors and equipment are clear. The demo is complete; pushback stays with you.",
+            "weight": 1
+          },
+          {
+            "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
+            "weight": 1
+          }
+        ],
+        "arrival.complete": [
+          {
+            "text": "Arrival handling is complete. Thanks for the flight.",
+            "weight": 1
+          },
+          {
+            "text": "The arrival services are finished this end.",
+            "weight": 1
+          }
+        ],
+        "services.starting": [
+          {
+            "text": "Services starting. I will keep you posted when you need to do something.",
+            "weight": 1
+          },
+          {
+            "text": "Ground services are starting now. I will check with you before we board.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-documents": [
+          {
+            "text": "Simulated delay: the gate needs a little longer for a document check before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-document query. I will keep services moving while boarding waits.",
+            "weight": 1
+          }
+        ],
+        "disruption.passenger-processing": [
+          {
+            "text": "Simulated passenger-processing delay. I will hold boarding until it clears.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay at passenger processing. The ground services can continue.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-staff": [
+          {
+            "text": "Simulated delay: the gate team needs a little extra time before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-team hold. We can carry on with the ground services meanwhile.",
+            "weight": 1
+          }
+        ],
+        "disruption.resolved": [
+          {
+            "text": "The simulated delay has cleared this end.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated hold cleared. We can move on once the remaining checks are ready.",
+            "weight": 1
+          }
+        ],
+        "services.start.approval": [
+          {
+            "text": "Are we ready to start services?",
+            "weight": 1
+          },
+          {
+            "text": "Happy for me to get the ground services started?",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "alex-concise",
+      "name": "Alex",
+      "tone": "FriendlyConcise",
+      "language": "en-US",
+      "templates": {
+        "welcome": [
+          {
+            "text": "Hi! I'll handle the ground services. I'll ask before boarding and closing up.",
+            "weight": 1
+          },
+          {
+            "text": "Hello! I'll take care of things on the ground and check with you before boarding.",
+            "weight": 1
+          }
+        ],
+        "boarding.approval": [
+          {
+            "text": "Fuel's complete and we're all set this end. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.no-fuel": [
+          {
+            "text": "The required services and gate checks are ready. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready for boarding this end. Shall I get everyone on?",
+            "weight": 1
+          }
+        ],
+        "closure.approval": [
+          {
+            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "weight": 1
+          }
+        ],
+        "handover.verified": [
+          {
+            "text": "Doors and ground equipment are confirmed clear. Pushback's over to you. Have a good flight!",
+            "weight": 1
+          },
+          {
+            "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.attested": [
+          {
+            "text": "Ground handling is complete with your manual release confirmations recorded. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.simulated": [
+          {
+            "text": "The simulated doors and equipment are clear. The demo is complete; pushback stays with you.",
+            "weight": 1
+          },
+          {
+            "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
+            "weight": 1
+          }
+        ],
+        "arrival.complete": [
+          {
+            "text": "Arrival handling is complete. Thanks for the flight.",
+            "weight": 1
+          },
+          {
+            "text": "The arrival services are finished this end.",
+            "weight": 1
+          }
+        ],
+        "services.starting": [
+          {
+            "text": "Services starting. I will give you a shout when you need to do something.",
+            "weight": 1
+          },
+          {
+            "text": "Ground services are on their way. I will ask before boarding.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-documents": [
+          {
+            "text": "Simulated delay: a quick gate-document check is holding boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-document query. I will keep the services moving while boarding waits.",
+            "weight": 1
+          }
+        ],
+        "disruption.passenger-processing": [
+          {
+            "text": "Simulated passenger-processing delay. We will wait before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay at passenger processing. I will keep boarding on hold for now.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-staff": [
+          {
+            "text": "Simulated delay: the gate team needs a bit more time before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-team hold. The ground services can carry on.",
+            "weight": 1
+          }
+        ],
+        "disruption.resolved": [
+          {
+            "text": "The simulated hold is clear now.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay cleared. We can continue once the other checks are ready.",
+            "weight": 1
+          }
+        ],
+        "services.start.approval": [
+          {
+            "text": "Are we ready to start services?",
+            "weight": 1
+          },
+          {
+            "text": "Ready for me to get the services going?",
+            "weight": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "james-formal",
+      "name": "James",
+      "tone": "FormalConcise",
+      "language": "en-GB",
+      "templates": {
+        "welcome": [
+          {
+            "text": "Hello. I will coordinate the ground services. Boarding and closure will require your approval.",
+            "weight": 1
+          },
+          {
+            "text": "Good day. I will manage the ground services and request your permission before boarding and closure.",
+            "weight": 1
+          }
+        ],
+        "boarding.approval": [
+          {
+            "text": "Fuel's complete and we're all set this end. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.no-fuel": [
+          {
+            "text": "The required services and gate checks are ready. Happy for me to start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready for boarding this end. Shall I get everyone on?",
+            "weight": 1
+          }
+        ],
+        "closure.approval": [
+          {
+            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "weight": 1
+          }
+        ],
+        "handover.verified": [
+          {
+            "text": "Doors and ground equipment are confirmed clear. Pushback's over to you. Have a good flight!",
+            "weight": 1
+          },
+          {
+            "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.attested": [
+          {
+            "text": "Ground handling is complete with your manual release confirmations recorded. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          }
+        ],
+        "handover.simulated": [
+          {
+            "text": "The simulated doors and equipment are clear. The demo is complete; pushback stays with you.",
+            "weight": 1
+          },
+          {
+            "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
+            "weight": 1
+          }
+        ],
+        "arrival.complete": [
+          {
+            "text": "Arrival handling is complete. Thanks for the flight.",
+            "weight": 1
+          },
+          {
+            "text": "The arrival services are finished this end.",
+            "weight": 1
+          }
+        ],
+        "services.starting": [
+          {
+            "text": "Services starting. I will advise when your input is required.",
+            "weight": 1
+          },
+          {
+            "text": "Ground services are starting. I will check with you before boarding.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-documents": [
+          {
+            "text": "Simulated delay: a gate-document check is holding boarding clearance.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-document query. Ground services may continue; boarding will wait.",
+            "weight": 1
+          }
+        ],
+        "disruption.passenger-processing": [
+          {
+            "text": "Simulated passenger-processing delay. Boarding clearance is on hold.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay at passenger processing. Ground services can continue.",
+            "weight": 1
+          }
+        ],
+        "disruption.gate-staff": [
+          {
+            "text": "Simulated delay: the gate team needs a little more time before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated gate-team delay. I will withhold boarding clearance until it clears.",
+            "weight": 1
+          }
+        ],
+        "disruption.resolved": [
+          {
+            "text": "The simulated delay has cleared.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated hold resolved. The remaining service and gate checks still apply.",
+            "weight": 1
+          }
+        ],
+        "services.start.approval": [
+          {
+            "text": "Are we ready to start services?",
+            "weight": 1
+          },
+          {
+            "text": "May I start the ground services?",
+            "weight": 1
+          }
+        ]
+      }
+    }
+  ]
+}

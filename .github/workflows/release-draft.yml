@@ -1,0 +1,57 @@
+name: Build signed release draft
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (for example 0.8.0)'
+        required: true
+        type: string
+      release_gates_confirmed:
+        description: 'Runtime/media rights, source licence and qualification reviewed'
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  package:
+    if: inputs.release_gates_confirmed
+    runs-on: [self-hosted, Windows, X64, adm-release]
+    environment: community-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Verify
+        shell: pwsh
+        run: |
+          dotnet restore ADM.sln
+          if ($LASTEXITCODE -ne 0) { throw 'Restore failed.' }
+          dotnet build ADM.sln -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed.' }
+          dotnet test ADM.sln -c Release --no-build
+          if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
+      - name: Build conventional signed installer
+        shell: pwsh
+        env:
+          ADM_VERSION: ${{ inputs.version }}
+          ADM_REPOSITORY: ${{ github.repository }}
+          ADM_SIGN_COMMAND: ${{ secrets.ADM_SIGN_COMMAND }}
+        run: |
+          if (-not $env:ADM_SIGN_COMMAND) { throw 'Configure signing in the protected release environment.' }
+          ./scripts/Publish-Installer.ps1 -Version $env:ADM_VERSION -Repository $env:ADM_REPOSITORY -SignCommand $env:ADM_SIGN_COMMAND
+          $package = Get-Content artifacts/m8-setup.json -Raw | ConvertFrom-Json
+          if ((Get-AuthenticodeSignature -LiteralPath $package.Installer).Status -ne 'Valid') { throw 'Installer signature is not valid.' }
+      - name: Create draft for human review
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ADM_VERSION: ${{ inputs.version }}
+        run: |
+          $package = Get-Content artifacts/m8-setup.json -Raw | ConvertFrom-Json
+          gh release create ('v' + $env:ADM_VERSION) $package.Installer ($package.Installer + '.sha256') --target $env:GITHUB_SHA --draft --title ('ADM ' + $env:ADM_VERSION) --notes-file docs/release-notes-next.md
+          if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed.' }

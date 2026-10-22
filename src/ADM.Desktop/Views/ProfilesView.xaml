@@ -1,0 +1,69 @@
+<UserControl x:Class="ADM.Desktop.Views.ProfilesView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:text="clr-namespace:ADM.Desktop.Resources">
+    <ScrollViewer x:Name="ProfilesScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,5,0"><StackPanel>
+        <TextBlock Text="Profiles" Style="{StaticResource PageTitle}" />
+<Border x:Name="ProfileCard" Style="{StaticResource Card}"><StackPanel DataContext="{Binding Profiles}">
+                <TextBlock Text="Choose an airline, then set its services. Changes apply to future flights." Style="{StaticResource Caption}" Margin="0,0,0,14" />
+                <TextBlock Text="Airline" Style="{StaticResource Caption}" Margin="0,0,0,6" />
+                <ComboBox ItemsSource="{Binding Airlines}" SelectedItem="{Binding SelectedAirline}" DisplayMemberPath="Label" AutomationProperties.Name="Preview airline" />
+                <Expander Header="Add an airline" Style="{StaticResource SimpleExpander}" Margin="0,12,0,12"><StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="Enter the airline's three-letter ICAO callsign code, for example EZY. Saving makes this your own local airline mapping." Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                    <TextBlock Text="ICAO code" Style="{StaticResource Caption}" /><TextBox Text="{Binding NewAirlineCode, UpdateSourceTrigger=PropertyChanged}" MaxLength="3" AutomationProperties.Name="New airline ICAO code" Margin="0,5,0,10" />
+                    <TextBlock Text="Airline name" Style="{StaticResource Caption}" /><TextBox Text="{Binding NewAirlineName, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" AutomationProperties.Name="New airline name" Margin="0,5,0,10" />
+                    <CheckBox Content="Copy the currently selected profile" IsChecked="{Binding CopyCurrentProfile}" />
+                    <Button Content="Create airline draft" Command="{Binding CreateProfileCommand}" HorizontalAlignment="Left" Margin="0,10,0,8" />
+                    <TextBlock Text="{Binding CreationStatus}" Style="{StaticResource Caption}" />
+                </StackPanel></Expander>
+                <TextBlock Text="Flight type" Style="{StaticResource Caption}" Margin="0,4,0,6" />
+                <ComboBox ItemsSource="{Binding Operations}" SelectedItem="{Binding SelectedOperation}" DisplayMemberPath="Label" AutomationProperties.Name="Preview operation type" />
+                <TextBlock Text="Apply these settings to" Style="{StaticResource Caption}" Margin="0,14,0,6" />
+                <ComboBox ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}" AutomationProperties.Name="Profile editing scope" />
+                <StackPanel Visibility="{Binding IsAircraftScope, Converter={StaticResource VisibleIf}}" Margin="0,12,0,0">
+                    <TextBlock Text="Aircraft ICAO type — choose one or type a new code" Style="{StaticResource Caption}" />
+                    <ComboBox IsEditable="True" ItemsSource="{Binding AircraftChoices}" Text="{Binding AircraftType, UpdateSourceTrigger=LostFocus}" AutomationProperties.Name="Profile ICAO aircraft type" Margin="0,6,0,0" />
+                    <TextBlock Text="Examples: A20N, B738, B77W. Inherit uses the airline's settings. Changes here affect this type only." Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                </StackPanel>
+                <TextBlock Text="Boarding always waits for your approval." Style="{StaticResource Caption}" Margin="0,14,0,14" />
+                <ItemsControl ItemsSource="{Binding Rows}"><ItemsControl.ItemTemplate><DataTemplate>
+                    <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}" AutomationProperties.Name="{Binding Name, StringFormat={}{0} service setting}" />
+                    </Grid>
+                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                <Expander Header="Service order" Style="{StaticResource SimpleExpander}" Margin="0,4,0,12"><StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="Lower steps run first. Equal steps group work where supported. Boarding stays after fuel." Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                    <ItemsControl ItemsSource="{Binding Rows}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="80" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding DataContext.Phases, RelativeSource={RelativeSource AncestorType=ItemsControl}}" SelectedItem="{Binding Phase}" IsEnabled="{Binding CanChangePhase}" AutomationProperties.Name="{Binding Name, StringFormat={}{0} service phase}" />
+                        </Grid>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                </StackPanel></Expander>
+                <TextBlock Text="{Binding SequenceError}" Style="{StaticResource Caption}" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite" />
+                <Button Content="Save profile" Command="{Binding DataContext.SaveProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                <TextBlock Text="{Binding DataContext.ProfileSaveStatus, RelativeSource={RelativeSource AncestorType=UserControl}}" Style="{StaticResource Caption}" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite" />
+                <TextBlock Text="{Binding SequenceStatus}" Style="{StaticResource Caption}" Margin="0,0,0,16" />
+                <Expander Header="{x:Static text:UiText.AirlineRealism}" Style="{StaticResource SimpleExpander}" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{x:Static text:UiText.AirlineRealismNote}" Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                    <TextBlock Text="{x:Static text:UiText.AirlineDelayChance}" Style="{StaticResource Caption}" /><TextBox Text="{Binding DelayProbabilityText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Airline simulated delay chance percent" Margin="0,5,0,10" />
+                    <TextBlock Text="{x:Static text:UiText.AirlineMaximumDelay}" Style="{StaticResource Caption}" /><TextBox Text="{Binding MaximumDelayText, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Airline maximum simulated delay minutes" Margin="0,5,0,0" />
+                </StackPanel></Expander>
+                <Expander Header="{x:Static text:UiText.ProfileFiles}" Style="{StaticResource SimpleExpander}" Margin="0,0,0,16"><StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{x:Static text:UiText.ProfileFilesNote}" Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                    <WrapPanel><Button Content="{x:Static text:UiText.ImportProfile}" Command="{Binding DataContext.ImportProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="0,0,8,8" />
+                        <Button Content="{x:Static text:UiText.ExportProfile}" Command="{Binding DataContext.ExportProfileCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="0,0,0,8" /></WrapPanel>
+                </StackPanel></Expander>
+                <Expander Header="What do the settings mean?" Style="{StaticResource SimpleExpander}" Margin="0,0,0,12"><TextBlock Text="Automatic: request after your service-start approval. Ask: check with you first. Disabled: leave it out. Inherit: use the airline settings for this aircraft." Style="{StaticResource Caption}" Margin="0,10,0,0" /></Expander>
+                <Expander Header="Preview the resulting plan" Style="{StaticResource SimpleExpander}"><Border Background="{DynamicResource AccentSoft}" Padding="12" CornerRadius="12"><StackPanel>
+                    <TextBlock Text="RESOLVED PLAN PREVIEW" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource Accent}" />
+                    <TextBlock Text="{Binding PreviewTitle}" FontWeight="SemiBold" Margin="0,6,0,14" />
+                    <ItemsControl ItemsSource="{Binding Preview}"><ItemsControl.ItemTemplate><DataTemplate>
+                        <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="{Binding Service}" FontSize="13" /><TextBlock Text="{Binding Source}" Style="{StaticResource Caption}" FontSize="10" Margin="0,3,0,0" /></StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding Policy}" FontSize="13" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                    <TextBlock Text="Automatic boarding still needs your explicit approval." Style="{StaticResource Caption}" />
+                </StackPanel></Border></Expander>
+            </StackPanel></Border>
+    </StackPanel></ScrollViewer>
+</UserControl>

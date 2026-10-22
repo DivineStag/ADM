@@ -1,0 +1,457 @@
+{
+  "Sessions": 50,
+  "Incidents": 13,
+  "Variants": 6,
+  "Runs": [
+    {
+      "Seed": 0,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 1,
+      "Incident": "GateDocuments",
+      "Minutes": 4,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 2,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 3,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 4,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 5,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 6,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 7,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 8,
+      "Incident": "PassengerProcessing",
+      "Minutes": 3,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 9,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 10,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 11,
+      "Incident": "GateStaff",
+      "Minutes": 4,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 12,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 13,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 14,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 15,
+      "Incident": "GateDocuments",
+      "Minutes": 5,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 16,
+      "Incident": "PassengerProcessing",
+      "Minutes": 7,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 17,
+      "Incident": "GateStaff",
+      "Minutes": 2,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 18,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 19,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 20,
+      "Incident": "GateStaff",
+      "Minutes": 5,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 21,
+      "Incident": "GateStaff",
+      "Minutes": 4,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 22,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 23,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 24,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 25,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 26,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 27,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 28,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 29,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 30,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 31,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 32,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 33,
+      "Incident": "GateDocuments",
+      "Minutes": 3,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 34,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 35,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 36,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 37,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 38,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 39,
+      "Incident": "GateDocuments",
+      "Minutes": 6,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 40,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 41,
+      "Incident": "GateDocuments",
+      "Minutes": 5,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 42,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 43,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 44,
+      "Incident": "GateStaff",
+      "Minutes": 4,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 45,
+      "Incident": "PassengerProcessing",
+      "Minutes": 5,
+      "Messages": 16,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "alex-concise"
+    },
+    {
+      "Seed": 46,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "james-formal"
+    },
+    {
+      "Seed": 47,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 48,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    },
+    {
+      "Seed": 49,
+      "Incident": null,
+      "Minutes": 0,
+      "Messages": 15,
+      "Commands": 7,
+      "Stage": "Completed",
+      "Dispatcher": "sample-sarah"
+    }
+  ]
+}

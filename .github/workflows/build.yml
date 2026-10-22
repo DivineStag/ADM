@@ -1,0 +1,34 @@
+name: Windows foundation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore ADM.sln
+      - run: dotnet format ADM.sln --verify-no-changes --no-restore
+      - run: dotnet build ADM.sln --no-restore --configuration Release
+      - run: dotnet test ADM.sln --no-build --configuration Release --logger trx --results-directory artifacts/test-results
+      - name: WPF startup smoke test
+        shell: pwsh
+        run: ./scripts/Test-DesktopStartup.ps1 -Configuration Release
+      - name: WPF interface acceptance
+        shell: pwsh
+        run: ./scripts/Test-DesktopUi.ps1 -Configuration Release
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: artifacts/test-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-ui-previews
+          path: artifacts/ui

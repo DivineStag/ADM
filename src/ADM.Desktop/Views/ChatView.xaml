@@ -1,0 +1,69 @@
+<UserControl x:Class="ADM.Desktop.Views.ChatView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <ScrollViewer x:Name="ChatScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,6,0">
+            <StackPanel>
+                <TextBlock Text="TODAY" Style="{StaticResource Eyebrow}" HorizontalAlignment="Center" Margin="0,8,0,24" />
+                <ItemsControl ItemsSource="{Binding Messages}" AutomationProperties.Name="Dispatcher conversation" AutomationProperties.LiveSetting="Polite">
+                    <ItemsControl.ItemTemplate><DataTemplate>
+                        <Grid x:Name="MessageGrid" Margin="0,0,34,18">
+                            <StackPanel>
+                                <Border x:Name="Bubble" Background="{DynamicResource Surface}" CornerRadius="18,18,18,4" Padding="16,13" HorizontalAlignment="Left" MaxWidth="440">
+                                    <TextBlock x:Name="MessageText" Text="{Binding Text}" FontSize="15" LineHeight="22" AutomationProperties.Name="{Binding AccessibleText}" />
+                                </Border>
+                                <StackPanel x:Name="MessageMeta" Orientation="Horizontal" Margin="4,6,0,0">
+                                    <TextBlock Text="{Binding Sender}" Style="{StaticResource Caption}" FontSize="10" Margin="0,0,8,0" />
+                                    <TextBlock Text="{Binding Time}" Style="{StaticResource Caption}" FontSize="10" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsSystem}" Value="True">
+                                <Setter TargetName="MessageGrid" Property="Margin" Value="8,0,8,14" />
+                                <Setter TargetName="Bubble" Property="Background" Value="Transparent" />
+                                <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Center" />
+                                <Setter TargetName="Bubble" Property="Padding" Value="0,5" />
+                                <Setter TargetName="MessageText" Property="FontSize" Value="12" />
+                                <Setter TargetName="MessageText" Property="Foreground" Value="{DynamicResource MutedInk}" />
+                                <Setter TargetName="MessageMeta" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsPilot}" Value="True">
+                                <Setter TargetName="MessageGrid" Property="Margin" Value="34,0,0,18" />
+                                <Setter TargetName="Bubble" Property="Background" Value="{DynamicResource PilotBubble}" />
+                                <Setter TargetName="Bubble" Property="CornerRadius" Value="18,18,4,18" />
+                                <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="MessageText" Property="Foreground" Value="{DynamicResource PilotInk}" />
+                                <Setter TargetName="MessageMeta" Property="HorizontalAlignment" Value="Right" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate></ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding QuickReplies}" Margin="0,8,0,6" Visibility="{Binding HasQuickReplies, Converter={StaticResource VisibleIf}}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate><DataTemplate>
+                <Button Content="{Binding}" Command="{Binding DataContext.QuickReplyCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Margin="0,0,8,6" Background="{DynamicResource AccentSoft}" Foreground="{DynamicResource Accent}" AutomationProperties.Name="{Binding}" />
+            </DataTemplate></ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="52" /></Grid.ColumnDefinitions>
+            <Grid Margin="0,0,8,0">
+                <TextBox x:Name="Composer" Text="{Binding Draft, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="100" VerticalScrollBarVisibility="Auto" PreviewKeyDown="Composer_OnPreviewKeyDown" AutomationProperties.Name="Message dispatcher" ToolTip="Enter to send. Shift+Enter for a new line." />
+                <TextBlock Text="Message dispatcher…" Foreground="{DynamicResource MutedInk}" Margin="13,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                    <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Draft}" Value=""><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <Button x:Name="SendButton" Grid.Column="1" Command="{Binding SendCommand}" Style="{StaticResource PrimaryButton}" Padding="0" ToolTip="Send (Enter)" AutomationProperties.Name="Send message">
+                <Path Data="M 0 7 L 14 7 M 7 0 L 14 7 L 7 14" Stroke="{DynamicResource PilotInk}" StrokeThickness="1.7" Width="16" Height="16" />
+            </Button>
+        </Grid>
+        <DockPanel Grid.Row="3" LastChildFill="True">
+            <Button x:Name="AdvanceButton" DockPanel.Dock="Right" Content="{Binding AdvanceLabel}" Command="{Binding AdvanceCommand}" Style="{StaticResource QuietButton}" FontSize="11" Padding="8,2" AutomationProperties.Name="Advance sample flight" />
+            
+        </DockPanel>
+    </Grid>
+</UserControl>
+
+

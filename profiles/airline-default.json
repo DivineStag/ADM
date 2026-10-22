@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "icao": "GENERIC",
+  "displayName": "Generic sample preferences",
+  "revision": 1,
+  "operations": {
+    "FirstDeparture": {
+      "services": {
+        "Cleaning": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Catering": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Refuelling": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Water": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Lavatory": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Boarding": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        }
+      },
+      "servicePhases": {
+        "Cleaning": 2,
+        "Water": 3,
+        "Lavatory": 3,
+        "Refuelling": 3,
+        "Catering": 3,
+        "Boarding": 7
+      }
+    },
+    "Turnaround": {
+      "services": {
+        "Cleaning": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Catering": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Refuelling": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Water": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Lavatory": {
+          "policy": "Automatic",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Boarding": {
+          "policy": "Automatic",
+          "required": true,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        }
+      },
+      "servicePhases": {
+        "Cleaning": 2,
+        "Water": 3,
+        "Lavatory": 3,
+        "Refuelling": 3,
+        "Catering": 3,
+        "Boarding": 7
+      }
+    },
+    "FinalArrival": {
+      "services": {
+        "Cleaning": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Catering": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Refuelling": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Water": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Lavatory": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        },
+        "Boarding": {
+          "policy": "Disabled",
+          "required": false,
+          "dependencies": [],
+          "applicabilityRule": "Requires future capability and prerequisite evaluation"
+        }
+      },
+      "servicePhases": {
+        "Cleaning": 2,
+        "Water": 3,
+        "Lavatory": 3,
+        "Refuelling": 3,
+        "Catering": 3,
+        "Boarding": 7
+      }
+    }
+  },
+  "familyOverrides": {},
+  "typeOverrides": {}
+}

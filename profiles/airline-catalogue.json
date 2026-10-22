@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "catalogueVersion": "m0-examples-2026-10-20",
+  "source": "ADM v4 specification examples; limited development allowlist, not a complete ICAO publication",
+  "designators": {
+    "RYR": "Ryanair",
+    "BAW": "British Airways",
+    "UAL": "United Airlines"
+  }
+}

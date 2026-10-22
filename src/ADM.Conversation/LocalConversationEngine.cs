@@ -1,0 +1,54 @@
+using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
+using ADM.Contracts;
+using ADM.Domain;
+
+namespace ADM.Conversation;
+
+public sealed class LocalConversationEngine(PersonaCatalogue catalogue) : IConversationEngine
+{
+    public PilotIntent Parse(string message, OperationalContext context) => LocalIntentParser.Parse(message, context);
+    public ConversationDecision Evaluate(OperationalContext context, DomainEvent domainEvent)
+    {
+        string key = domainEvent.Name.Split(':')[0];
+        var persona = catalogue.Get(context.Session.Dispatcher.Persona.Id);
+        string? message = domainEvent.Detail;
+        if (persona.Templates.TryGetValue(key, out var variants))
+        {
+            var recent = context.RecentMessages.IsDefault ? ImmutableArray<string>.Empty : context.RecentMessages;
+            var available = variants.Where(variant => !recent.TakeLast(3).Contains(variant.Text)).ToArray();
+            if (available.Length == 0) available = variants.ToArray();
+            byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{context.Session.Id}/{persona.Id}/{domainEvent.Name}"));
+            int pick = (int)(System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(hash) % available.Sum(variant => variant.Weight));
+            foreach (var variant in available)
+            {
+                pick -= variant.Weight;
+                if (pick < 0) { message = variant.Text; break; }
+            }
+        }
+        return new(domainEvent.Name, message, QuickReplies(context));
+    }
+
+    public static ImmutableArray<string> QuickReplies(OperationalContext context) => context.Question?.Kind switch
+    {
+        QuestionKind.ServicesStart => ["Yes, start services", "Not yet"],
+        QuestionKind.Boarding => ["Yes, start boarding", "Hold boarding"],
+        QuestionKind.Closure => ["Yes, close up", "Keep connected"],
+        QuestionKind.Service => ["Yes", $"Skip {context.Question.Service!.Value.ToString().ToLowerInvariant()}"],
+        QuestionKind.MandatorySkip => ["Confirm skip", "Are we ready?"],
+        QuestionKind.GateCheck => ["Gate checked"],
+        QuestionKind.FuelCheck => ["Fuel confirmed"],
+        QuestionKind.ManualRelease => [context.Question.Release switch
+        {
+            ReleaseAction.Doors => "Confirm doors closed",
+            ReleaseAction.JetwayOrStairs => "Confirm jetway / stairs clear",
+            _ => "Confirm ground equipment clear"
+        }],
+        QuestionKind.ServiceCompletion => [context.Question.Service == ServiceKind.Refuelling ? "Confirm fuel complete" : "Confirm boarding complete", context.Question.Service == ServiceKind.Refuelling ? "Restart fuel" : "Restart boarding", "What's the delay?"],
+        _ when context.Session.Holds.Any(hold => hold.IsActive && hold.Kind == HoldKind.ManualPilotHold && hold.Scope == HoldScope.Boarding) => ["Resume boarding", "What's the delay?"],
+        _ when context.Session.Holds.Any(hold => hold.IsActive && hold.IsSimulated) || context.Session.Gate is { State: GateReadinessState.Preparing, Provenance: GateProvenance.Simulation }
+            => ["Skip the gate delay", "What's the delay?"],
+        _ => ["Are we ready?", "What's the delay?"]
+    };
+}

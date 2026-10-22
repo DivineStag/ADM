@@ -1,0 +1,11 @@
+ADM - Aircraft Dispatch Manager
+
+Local qualification beta
+
+This installer includes the application and its runtime. You do not need to install the MSFS SDK, .NET or development tools. MSFS 2024 and GSX must be installed separately.
+
+ADM installs for your Windows account. Your profiles and history are stored separately and kept when uninstalling.
+
+This local beta is unsigned. It has not been qualified for public distribution. Runtime redistribution permissions, supplied media rights and the live aircraft test matrix remain under review.
+
+Pushback always belongs to the pilot.

@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="Canvas" Color="#10191F" />
+    <SolidColorBrush x:Key="Surface" Color="#18242C" />
+    <SolidColorBrush x:Key="Raised" Color="#21323B" />
+    <SolidColorBrush x:Key="Ink" Color="#EFF5F4" />
+    <SolidColorBrush x:Key="MutedInk" Color="#A4B5BD" />
+    <SolidColorBrush x:Key="Accent" Color="#8CDED0" />
+    <SolidColorBrush x:Key="AccentSoft" Color="#223E3E" />
+    <SolidColorBrush x:Key="Stroke" Color="#304149" />
+    <SolidColorBrush x:Key="PilotBubble" Color="#B7EADC" />
+    <SolidColorBrush x:Key="PilotInk" Color="#17332E" />
+    <SolidColorBrush x:Key="Avatar" Color="#2F5752" />
+</ResourceDictionary>

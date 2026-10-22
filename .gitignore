@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+*.user
+TestResults/
+artifacts/
+.dotnet-home/
+*.log
+
+# User-supplied sound: public redistribution evidence is still pending.
+src/ADM.Desktop/Assets/incoming.mp3
+
+# Private live simulator evidence is retained locally only.
+docs/evidence/m3-live-water.jsonl
+docs/evidence/m7-ux-readonly-flight-data.json

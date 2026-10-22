@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <MsfsSdkPath Condition="'$(MsfsSdkPath)' == ''">C:\MSFS 2024 SDK</MsfsSdkPath>
+    <HasSimConnectSdk Condition="Exists('$(MsfsSdkPath)\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll')">true</HasSimConnectSdk>
+    <DefineConstants Condition="'$(HasSimConnectSdk)' == 'true'">$(DefineConstants);HAS_SIMCONNECT_SDK</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(HasSimConnectSdk)' == 'true'">
+    <Reference Include="Microsoft.FlightSimulator.SimConnect">
+      <HintPath>$(MsfsSdkPath)\SimConnect SDK\lib\managed\Microsoft.FlightSimulator.SimConnect.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <!-- Local development output only. SDK binaries are never committed or packaged for release here. -->
+    <Content Include="$(MsfsSdkPath)\SimConnect SDK\lib\SimConnect.dll" Link="SimConnect.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ADM.Contracts\ADM.Contracts.csproj" />
+
+  </ItemGroup>
+</Project>
+

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ADM.Conversation\ADM.Conversation.csproj" />
+    <ProjectReference Include="..\..\src\ADM.Simulation\ADM.Simulation.csproj" />
+    <Compile Include="..\Shared\OperationalScenario.cs" Link="OperationalScenario.cs" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"><PrivateAssets>all</PrivateAssets></PackageReference>
+    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\ADM.Application\ADM.Application.csproj" />
+    <ProjectReference Include="..\..\src\ADM.Infrastructure\ADM.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ADM.Integrations.Gsx\ADM.Integrations.Gsx.csproj" />
+    <ProjectReference Include="..\..\src\ADM.Integrations.Sim\ADM.Integrations.Sim.csproj" />
+  </ItemGroup>
+</Project>
+
+

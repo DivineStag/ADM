@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ADM.Integrations.Gsx\ADM.Integrations.Gsx.csproj" />
+    <ProjectReference Include="..\ADM.Integrations.Sim\ADM.Integrations.Sim.csproj" />
+  </ItemGroup>
+</Project>

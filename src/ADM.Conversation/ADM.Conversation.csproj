@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup></PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\profiles\dispatchers-default.json" LogicalName="ADM.Conversation.Personas.json" />
+    <ProjectReference Include="..\ADM.Contracts\ADM.Contracts.csproj" />
+
+  </ItemGroup>
+</Project>
+

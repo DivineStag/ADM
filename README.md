@@ -24,7 +24,7 @@ Default services are water, lavatory, fuel and catering in the preboarding phase
 Use Windows x64 and .NET SDK **10.0.402** (or an accepted later 10.0.4xx patch). Visual Studio with .NET 10 and the .NET desktop development workload is optional. Open ADM.sln with ADM.Desktop as startup project.
 
 ```powershell
-Set-Location 'C:\Users\a-nor\Documents\ADM'
+Set-Location 'C:\Projects\ADM'
 dotnet restore ADM.sln
 dotnet build ADM.sln -c Release
 dotnet test ADM.sln -c Release --no-build

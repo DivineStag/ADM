@@ -1,0 +1,28 @@
+{
+  "Synthetic": true,
+  "Restart": false,
+  "Sectors": [
+    {
+      "Number": 1,
+      "Callsign": "BAW482",
+      "Airline": "BAW",
+      "ProfileRevision": 2,
+      "Dispatcher": "sample-sarah",
+      "HandlingCompleted": true
+    },
+    {
+      "Number": 2,
+      "Callsign": "RYR123",
+      "Airline": "RYR",
+      "ProfileRevision": 4,
+      "Dispatcher": "james-formal",
+      "HandlingCompleted": true
+    }
+  ],
+  "Requests": 10,
+  "UniqueRequests": 10,
+  "ArchivedOperations": 2,
+  "InheritedApprovals": 0,
+  "DeboardingRequests": 0,
+  "PushbackCommands": 0
+}

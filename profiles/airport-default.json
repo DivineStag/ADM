@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "airports": [
+    { "schemaVersion": 1, "icao": "GENERIC", "preparationSeconds": 0, "simulatedReadiness": false }
+  ]
+}
