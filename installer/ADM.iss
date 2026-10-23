@@ -36,8 +36,14 @@ Compression=lzma2/fast
 SolidCompression=yes
 CloseApplications=yes
 RestartApplications=no
+#ifdef TestBuild
+; Test-mode ADM deliberately has no production instance mutex. Keep qualification
+; isolated from the installed application and its setup coordination objects.
+SetupMutex=ADM.IsolatedInstallerQualification.Setup
+#else
 AppMutex=ADM.Desktop.SingleInstance
 SetupMutex=ADM.Desktop.Setup
+#endif
 DisableWelcomePage=no
 #ifdef ReleaseBuild
 InfoBeforeFile=release-notice.txt
