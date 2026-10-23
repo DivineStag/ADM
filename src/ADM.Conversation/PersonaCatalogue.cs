@@ -15,6 +15,7 @@ public sealed class PersonaCatalogue
     public static readonly string[] RequiredKeys = ["welcome", "boarding.approval", "boarding.approval.no-fuel", "closure.approval", "handover.verified", "handover.attested", "handover.simulated", "arrival.complete",
         "services.start.approval", "services.starting", "disruption.gate-documents", "disruption.gate-staff", "disruption.passenger-processing", "disruption.resolved"];
     private readonly ImmutableDictionary<string, PersonaDefinition> _personas;
+    private static readonly string[] OptionalKeys = ["services.start.gsx", "services.start.gsx-load", "boarding.approval.gate", "boarding.approval.gate-no-fuel", "handover.signoff"];
     public PersonaCatalogue(IEnumerable<PersonaDefinition> personas)
     {
         var entries = personas.ToArray();
@@ -24,9 +25,9 @@ public sealed class PersonaCatalogue
         {
             if (string.IsNullOrWhiteSpace(persona.Id) || persona.Id.Length > 64 || string.IsNullOrWhiteSpace(persona.Name) || persona.Name.Length > 40 || persona.Name != persona.Name.Trim() || persona.Tone is not ("WarmProfessional" or "FormalConcise" or "FriendlyConcise") || persona.Language is not ("en-GB" or "en-US") || persona.Templates is null)
                 throw new ArgumentException("Persona identity, tone or language is invalid.");
-            if (persona.Templates.Keys.Any(key => !RequiredKeys.Contains(key, StringComparer.Ordinal)))
+            if (persona.Templates.Keys.Any(key => !RequiredKeys.Contains(key, StringComparer.Ordinal) && !OptionalKeys.Contains(key, StringComparer.Ordinal)))
                 throw new ArgumentException("Only approved semantic template keys may be configured; operational clarification text cannot be overridden.");
-            foreach (string key in RequiredKeys)
+            foreach (string key in RequiredKeys.Concat(OptionalKeys.Where(persona.Templates.ContainsKey)))
             {
                 if (!persona.Templates.TryGetValue(key, out var variants) || variants.Length is < 2 or > 16 || variants.Any(variant =>
                     variant is null || variant.Weight is < 1 or > 100 || string.IsNullOrWhiteSpace(variant.Text) || variant.Text.Length > 500 || Regex.IsMatch(variant.Text, "[{}]", RegexOptions.CultureInvariant)))

@@ -229,9 +229,10 @@ public static class OperationalReducer
                     (kind != ServiceKind.Refuelling || state.FuelAttested && state.FuelAttestation?.Source == EvidenceSource.User && EvidenceValid(state.FuelAttestation));
             return false;
         }
-        bool ReadyForBoarding() => state.Connection == ConnectionState.Connected && !Held() &&
+        bool ReadyForBoarding(bool allowPilotGateConfirmation = false) => state.Connection == ConnectionState.Connected && !Held() &&
             (state.TriggerableServices is null || state.TriggerableServices.Contains(ServiceKind.Boarding)) &&
-            state.Session.Gate.State == GateReadinessState.Ready && GateRules.HasEvidence(state.Session.Gate) &&
+            (state.Session.Gate.State == GateReadinessState.Ready && GateRules.HasEvidence(state.Session.Gate) ||
+                allowPilotGateConfirmation && state.Session.Gate.State is GateReadinessState.Unknown or GateReadinessState.Invalidated) &&
             Enum.GetValues<ServiceKind>().Where(kind => kind != ServiceKind.Boarding).All(Resolved);
         void Ask(QuestionKind kind, string key, string? text = null, ServiceKind? service = null, ReleaseAction? release = null)
         {
@@ -357,8 +358,17 @@ public static class OperationalReducer
                         : "Understood. I'll wait for a fresh go-ahead when you're ready.");
                     return;
                 case PilotDirective.ApproveBoarding:
-                    if (state.Question?.Kind != QuestionKind.Boarding || !ReadyForBoarding() || state.Question.Revision != state.Session.PrerequisiteRevision)
+                    if (state.Question?.Kind != QuestionKind.Boarding || !ReadyForBoarding(allowPilotGateConfirmation: true) || state.Question.Revision != state.Session.PrerequisiteRevision)
                     { Say("Boarding is not ready for approval yet. " + DelayDescription(state)); return; }
+                    if (state.Session.Gate.State is GateReadinessState.Unknown or GateReadinessState.Invalidated)
+                        state = state with
+                        {
+                            Session = state.Session with
+                            {
+                                Gate = new(GateReadinessState.Ready, GateProvenance.PilotAttested,
+                                    new(EvidenceSource.User, $"Pilot confirmed gate readiness with boarding approval {metadata.EventId}", metadata.OccurredAt))
+                            }
+                        };
                     Approve(ApprovalKind.Boarding);
                     Queue(OperationalCommandKind.RequestService, ServiceKind.Boarding);
                     SetStage(WorkflowStage.Boarding);
@@ -369,7 +379,6 @@ public static class OperationalReducer
                         !Enum.GetValues<ServiceKind>().All(Resolved) || state.Session.Services[ServiceKind.Boarding].State != ServiceState.Completed)
                     { Say("Closure needs completed boarding and a fresh pilot approval."); return; }
                     Approve(ApprovalKind.Closure);
-                    SetStage(WorkflowStage.ClosingAndReleasing);
                     return;
                 case PilotDirective.ConfirmGate:
                     if (state.Question?.Kind != QuestionKind.GateCheck) { Say("No gate check is awaiting confirmation."); return; }
@@ -388,15 +397,7 @@ public static class OperationalReducer
                     state = state with { FuelAttested = true, FuelAttestation = new(EvidenceSource.User, $"Pilot fuel confirmation {metadata.EventId}", metadata.OccurredAt), Question = null };
                     return;
                 case PilotDirective.ConfirmRelease:
-                    if (state.Question is not { Kind: QuestionKind.ManualRelease, Release: { } action } || !HasApproval(ApprovalKind.Closure))
-                    { Say("No approved manual release is awaiting confirmation."); return; }
-                    if (instruction.Release is { } requestedRelease && requestedRelease != action) { Say("Please confirm the equipment currently requested."); return; }
-                    state = state with
-                    {
-                        Releases = state.Releases.SetItem(action, new(action.ToString(), true,
-                        new(EvidenceSource.User, $"Manual release acknowledgement {metadata.EventId}", metadata.OccurredAt), CompletionProvenance.PilotAttested)),
-                        Question = null
-                    };
+                    Say("Doors and ground equipment stay with you and GSX. No release confirmation is needed in ADM.");
                     return;
                 case PilotDirective.ConfirmServiceCompletion:
                     if (state.Connection != ConnectionState.Connected || state.Question is not { Kind: QuestionKind.ServiceCompletion, Service: { } checkedService } ||
@@ -498,24 +499,10 @@ public static class OperationalReducer
             { SetStage(WorkflowStage.AwaitingClosureApproval); }
             if (HasApproval(ApprovalKind.Closure) && state.Session.Services[ServiceKind.Boarding].State == ServiceState.Completed && Enum.GetValues<ServiceKind>().All(Resolved) && !Held())
             {
-                SetStage(WorkflowStage.ClosingAndReleasing);
-                foreach (var action in Enum.GetValues<ReleaseAction>())
-                {
-                    if (state.Releases[action].IsSatisfied) continue;
-                    if (state.SupportedReleaseActions.Contains(action)) Queue(OperationalCommandKind.ReleaseEquipment, release: action);
-                    else Ask(QuestionKind.ManualRelease, "release.manual", action switch
-                    {
-                        ReleaseAction.Doors => "Please close the required passenger and cargo doors, then confirm they are closed.",
-                        ReleaseAction.JetwayOrStairs => "Please disconnect the jetway or remove the passenger stairs, then confirm they are clear.",
-                        _ => "Please disconnect the remaining ground equipment and remove chocks where appropriate, then confirm it is clear."
-                    }, release: action);
-                    return;
-                }
+                // Also settle legacy checkpoints without replaying physical equipment commands.
                 SetStage(WorkflowStage.Completed);
                 state = state with { Question = null };
-                string provenance = state.Releases.Values.Any(release => release.Provenance == CompletionProvenance.Simulation) ? "simulated" :
-                    state.Releases.Values.Any(release => release.Provenance == CompletionProvenance.PilotAttested) ? "attested" : "verified";
-                notices.Add(new($"handover.{provenance}", Important: true));
+                notices.Add(new("handover.signoff", Important: true));
                 return;
             }
             if (state.Session.Services[ServiceKind.Boarding].State == ServiceState.Completed)
@@ -551,12 +538,15 @@ public static class OperationalReducer
             { SetStage(WorkflowStage.NeedsAttention); return; }
             if (!Enum.GetValues<ServiceKind>().Where(kind => kind != ServiceKind.Boarding).All(Resolved)) return;
             if (Held()) { SetStage(WorkflowStage.PreBoardServices); state = state with { Question = null }; return; }
-            if (state.Session.Gate.State != GateReadinessState.Ready)
-            { SetStage(WorkflowStage.PreBoardServices); if (state.Session.Gate.State is GateReadinessState.Unknown or GateReadinessState.Invalidated) Ask(QuestionKind.GateCheck, "gate.check", "Gate readiness is unknown. Please check the gate and confirm before boarding."); return; }
+            if (state.Session.Gate.State is not (GateReadinessState.Ready or GateReadinessState.Unknown or GateReadinessState.Invalidated))
+            { SetStage(WorkflowStage.PreBoardServices); return; }
             if (!state.SupportedServices.Contains(ServiceKind.Boarding)) { SetStage(WorkflowStage.NeedsAttention); return; }
             if (state.TriggerableServices is { } triggerable && !triggerable.Contains(ServiceKind.Boarding)) { SetStage(WorkflowStage.PreBoardServices); return; }
             SetStage(WorkflowStage.AwaitingBoardingApproval);
-            Ask(QuestionKind.Boarding, state.Session.Services[ServiceKind.Refuelling].State == ServiceState.Completed ? "boarding.approval" : "boarding.approval.no-fuel");
+            bool fuelComplete = state.Session.Services[ServiceKind.Refuelling].State == ServiceState.Completed;
+            bool gateNeedsConfirmation = state.Session.Gate.State is GateReadinessState.Unknown or GateReadinessState.Invalidated;
+            Ask(QuestionKind.Boarding, gateNeedsConfirmation ? fuelComplete ? "boarding.approval.gate" : "boarding.approval.gate-no-fuel" :
+                fuelComplete ? "boarding.approval" : "boarding.approval.no-fuel");
         }
     }
 
@@ -583,6 +573,10 @@ public static class OperationalReducer
                 ServiceState.Unknown => "status needs review",
                 _ => "is waiting to start"
             })).ToArray();
-        return unresolved.Length > 0 ? string.Join("; ", unresolved) : "Waiting for gate checks or the current pilot approval.";
+        if (unresolved.Length > 0) return string.Join("; ", unresolved);
+        if (state.Session.Stage == WorkflowStage.AwaitingBoardingApproval)
+            return "The preboarding services are sorted. Your boarding go-ahead also confirms the gate is ready.";
+        return state.Session.Gate.State is GateReadinessState.Preparing or GateReadinessState.Held
+            ? "We're waiting for the gate to be ready." : "I'm waiting for your go-ahead on the current question.";
     }
 }

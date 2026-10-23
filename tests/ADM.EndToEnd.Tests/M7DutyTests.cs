@@ -32,8 +32,6 @@ public sealed class M7DutyTests
         provider.Set(ServiceKind.Boarding, ServiceState.Active); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
         provider.Set(ServiceKind.Boarding, ServiceState.Completed); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
         await coordinator.SendAsync("Close up", Simulator, CancellationToken.None);
-        foreach (string confirmation in new[] { "Confirm doors closed", "Confirm jetway / stairs clear", "Confirm ground equipment clear" })
-            await coordinator.SendAsync(confirmation, Simulator, CancellationToken.None);
         Assert.Equal(WorkflowStage.Completed, coordinator.Checkpoint!.State.Session.Stage);
     }
     [Theory]

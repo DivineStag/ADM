@@ -66,16 +66,33 @@ public sealed class OperationalReducerTests
     }
 
     [Fact]
-    public void Rejected_equipment_action_requires_new_approval_and_manual_fallback()
+    public void Signoff_does_not_request_equipment_or_report_it_clear()
     {
         var run = new OperationalScenario(); run.BoardAndComplete(); run.User(PilotDirective.ApproveClosure);
-        var release = run.State.Commands.Last();
-        run.Apply(new AcknowledgeCommand(run.Meta(EvidenceSource.System, null), release.Id, CommandOutcome.Rejected));
-        Assert.Equal(QuestionKind.Closure, run.State.Question!.Kind);
-        Assert.False(run.State.Releases[ReleaseAction.Doors].IsSatisfied);
-        run.User(PilotDirective.ApproveClosure);
-        Assert.Equal(QuestionKind.ManualRelease, run.State.Question!.Kind);
-        Assert.Equal(ReleaseAction.Doors, run.State.Question.Release);
+        Assert.Equal(WorkflowStage.Completed, run.State.Session.Stage);
+        Assert.DoesNotContain(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
+        Assert.All(run.State.Releases.Values, release => Assert.False(release.IsSatisfied));
+        Assert.Single(run.Notices, notice => notice.Key == "handover.signoff");
+    }
+
+    [Fact]
+    public void Legacy_equipment_intents_are_never_dispatchable_even_with_closure_approval()
+    {
+        var run = new OperationalScenario(); run.BoardAndComplete(); run.User(PilotDirective.ApproveClosure);
+        var legacy = run.State.Commands.Last() with
+        {
+            Id = Guid.NewGuid(),
+            Kind = OperationalCommandKind.ReleaseEquipment,
+            Service = null,
+            Release = ReleaseAction.Doors,
+            PrerequisiteRevision = run.State.Session.PrerequisiteRevision
+        };
+        var restored = run.State with
+        {
+            Session = run.State.Session with { Stage = WorkflowStage.ClosingAndReleasing },
+            Commands = run.State.Commands.Add(legacy)
+        };
+        Assert.False(OperationalCommandPolicy.CanDispatch(restored, legacy));
     }
 
     [Fact]
@@ -87,7 +104,7 @@ public sealed class OperationalReducerTests
         Assert.Equal(QuestionKind.Closure, run.State.Question!.Kind);
         Assert.DoesNotContain(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
         run.User(PilotDirective.ApproveClosure);
-        Assert.Contains(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
+        Assert.Equal(WorkflowStage.Completed, run.State.Session.Stage);
     }
 
     [Fact]
@@ -100,10 +117,10 @@ public sealed class OperationalReducerTests
         Assert.Null(run.State.Question);
         run.User(PilotDirective.SkipSimulatedDelay);
         Assert.Equal(GateReadinessState.Unknown, run.State.Session.Gate.State);
-        Assert.Equal(QuestionKind.GateCheck, run.State.Question!.Kind);
-        run.User(PilotDirective.ConfirmGate);
         Assert.Equal(QuestionKind.Boarding, run.State.Question!.Kind);
         Assert.Empty(run.State.Session.Approvals);
+        run.User(PilotDirective.ApproveBoarding);
+        Assert.Equal(GateProvenance.PilotAttested, run.State.Session.Gate.Provenance);
     }
 
     [Fact]
@@ -164,12 +181,12 @@ public sealed class OperationalReducerTests
         run.User(PilotDirective.ApproveBoarding);
         Assert.Empty(run.State.Session.Approvals);
         run.CompletePreboarding();
-        Assert.Equal(QuestionKind.GateCheck, run.State.Question!.Kind);
-        Assert.DoesNotContain(run.State.Commands, command => command.Service == ServiceKind.Boarding);
-        run.User(PilotDirective.ConfirmGate);
-        Assert.Equal(GateProvenance.PilotAttested, run.State.Session.Gate.Provenance);
         Assert.Equal(QuestionKind.Boarding, run.State.Question!.Kind);
+        Assert.DoesNotContain(run.State.Commands, command => command.Service == ServiceKind.Boarding);
+        Assert.Equal(GateReadinessState.Unknown, run.State.Session.Gate.State);
         run.User(PilotDirective.ApproveBoarding);
+        Assert.Equal(GateProvenance.PilotAttested, run.State.Session.Gate.Provenance);
+        Assert.Equal(EvidenceSource.User, run.State.Session.Gate.Evidence!.Source);
         Assert.Equal(ServiceState.RequestPending, run.State.Session.Services[ServiceKind.Boarding].State);
         Assert.Single(run.State.Session.Approvals);
     }
@@ -278,39 +295,27 @@ public sealed class OperationalReducerTests
     }
 
     [Fact]
-    public void Closure_and_release_need_distinct_pilot_approval_and_observations()
+    public void Signoff_needs_boarding_complete_and_explicit_pilot_approval_but_no_release_observations()
     {
         var run = new OperationalScenario(); run.BoardAndComplete();
         Assert.Equal(QuestionKind.Closure, run.State.Question!.Kind);
-        Assert.DoesNotContain(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
+        Assert.NotEqual(WorkflowStage.Completed, run.State.Session.Stage);
         run.User(PilotDirective.ApproveClosure);
-        foreach (var action in Enum.GetValues<ReleaseAction>())
-        {
-            Assert.NotEqual(WorkflowStage.Completed, run.State.Session.Stage);
-            var command = run.State.Commands.Last();
-            run.Apply(new AcknowledgeCommand(run.Meta(EvidenceSource.System, null), command.Id, CommandOutcome.Accepted));
-            Assert.False(run.State.Releases[action].IsSatisfied);
-            run.Apply(new ObserveRelease(run.Meta(), action));
-        }
         Assert.Equal(WorkflowStage.Completed, run.State.Session.Stage);
-        Assert.Contains(run.Notices, notice => notice.Key == "handover.simulated");
-        Assert.DoesNotContain(run.State.Commands, command => command.ToString().Contains("Pushback", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(run.Notices, notice => notice.Key == "handover.signoff");
+        Assert.Null(run.State.Question);
+        Assert.All(run.State.Releases.Values, release => Assert.False(release.IsSatisfied));
+        Assert.DoesNotContain(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
     }
 
     [Fact]
-    public void Unsupported_release_requires_labelled_manual_confirmation_for_each_obligation()
+    public void Unsupported_equipment_does_not_create_manual_release_questions()
     {
         var run = new OperationalScenario(manualRelease: true); run.BoardAndComplete(); run.User(PilotDirective.ApproveClosure);
-        foreach (var action in Enum.GetValues<ReleaseAction>())
-        {
-            Assert.Equal(QuestionKind.ManualRelease, run.State.Question!.Kind);
-            Assert.Equal(action, run.State.Question.Release);
-            Assert.False(run.State.Releases[action].IsSatisfied);
-            run.User(PilotDirective.ConfirmRelease);
-            Assert.Equal(CompletionProvenance.PilotAttested, run.State.Releases[action].Provenance);
-        }
+        Assert.Null(run.State.Question);
         Assert.Equal(WorkflowStage.Completed, run.State.Session.Stage);
-        Assert.Contains(run.Notices, notice => notice.Key == "handover.attested");
+        Assert.Contains(run.Notices, notice => notice.Key == "handover.signoff");
+        Assert.All(run.State.Releases.Values, release => Assert.False(release.IsSatisfied));
         Assert.DoesNotContain(run.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
     }
 

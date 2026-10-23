@@ -437,10 +437,10 @@ public sealed class LiveDispatchCoordinator(IGsxGateway gateway, IGsxLiveState l
     private void RefreshStatus() => Status = live.Snapshot.AwaitingInput ? "GSX has a text field open. Complete or close it in the simulator." : live.Snapshot.MenuOpen ? "GSX menu is open. Close it to continue service requests." : _runtime!.Checkpoint.State.Session.Stage switch
     {
         WorkflowStage.Planning when _runtime.Checkpoint.State.RequiresServiceStartApproval && _runtime.Checkpoint.State.ServiceStartApproval is null => "Ready when you are. Reply in Chat to start services.",
-        WorkflowStage.AwaitingBoardingApproval => "Required services and gate checks are resolved. Boarding needs your approval.",
+        WorkflowStage.AwaitingBoardingApproval => "Ready for your boarding go-ahead. This also confirms the gate is ready.",
         WorkflowStage.Boarding => "Boarding requested or in progress. Waiting for GSX completion evidence.",
         WorkflowStage.AwaitingClosureApproval => "Boarding is complete. Waiting for your approval to close up and disconnect.",
-        WorkflowStage.ClosingAndReleasing => "Manual door and equipment checks are pending. Confirm each item only after it is clear.",
+        WorkflowStage.ClosingAndReleasing => "Finishing ADM's session. Doors and equipment remain with the pilot and GSX.",
         WorkflowStage.Completed => "Ground handling complete. Pushback is entirely yours; ADM continues monitoring the simulator.",
         WorkflowStage.ArrivalHandling or WorkflowStage.PreBoardServices => "Ground services in progress. You can ask for an update at any time.",
         _ => OperationalReducer.DelayDescription(_runtime.Checkpoint.State)

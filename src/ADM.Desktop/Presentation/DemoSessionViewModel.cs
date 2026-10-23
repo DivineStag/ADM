@@ -8,8 +8,13 @@ using ADM.Domain;
 namespace ADM.Desktop.Presentation;
 
 /// <summary>Presentation adapter over M2's local use case. Observations are explicitly simulated, never real GSX calls.</summary>
-public sealed class DemoSessionViewModel : ObservableObject
+public sealed class DemoSessionViewModel : ObservableObject, IDisposable
 {
+    private readonly ChatDeliveryQueue _delivery;
+    private readonly System.Windows.Threading.DispatcherTimer? _deliveryTimer;
+    private int _queuedMessages;
+    private bool _chatInitialized;
+    public event Action? MessageSent;
     private readonly IOperationalClock _clock;
     private readonly Action _notify;
     private readonly IConversationEngine _conversation;
@@ -19,12 +24,15 @@ public sealed class DemoSessionViewModel : ObservableObject
     private PendingServiceAction? _pendingAction;
 
     public DemoSessionViewModel(IOperationalClock clock, Action notify, IConversationEngine conversation, PersonaCatalogue personas,
-        Func<ImmutableDictionary<ServiceKind, int>>? nextSequence = null)
+        Func<ImmutableDictionary<ServiceKind, int>>? nextSequence = null, ChatTimingOptions? chatTiming = null)
     {
+        var timing = chatTiming ?? new(false); _delivery = new(timing.NextDelay);
+        if (timing.Enabled && System.Windows.Application.Current is { } application)
+            _deliveryTimer = new(TimeSpan.FromMilliseconds(100), System.Windows.Threading.DispatcherPriority.Background, (_, _) => FlushChat(), application.Dispatcher);
         _clock = clock; _notify = notify; _conversation = conversation; _personas = personas;
         NextSequence = nextSequence;
         SendCommand = new(_ => Send(Draft), _ => !string.IsNullOrWhiteSpace(Draft));
-        QuickReplyCommand = new(value => Send(value as string ?? ""));
+        QuickReplyCommand = new(value => Send(QuickChat.Message(value as string ?? "", _runtime.Context, _runtime.Checkpoint.Messages.Count(message => message.Sender == "You"))));
         AdvanceCommand = new(_ => Advance(), _ => CanAdvance);
         ResetCommand = new(_ => Reset());
         SkipCommand = new(value => Propose(value, "Skip"), value => value is ServiceRow row && Services.Contains(row) && row.CanSkip && CanEditServices);
@@ -143,6 +151,7 @@ public sealed class DemoSessionViewModel : ObservableObject
         Services.Clear();
         foreach (var kind in ServiceSequence.Ordered(plan).Where(kind => kind != ServiceKind.Deboarding)) Services.Add(new(kind, State.Session.Services[kind].State, "", plan.ServicePhases[kind]));
         Messages.Clear();
+        _delivery.Clear(); _queuedMessages = 0; _chatInitialized = false;
         Draft = "";
         Update();
     }
@@ -180,16 +189,14 @@ public sealed class DemoSessionViewModel : ObservableObject
     }
     public void Send(string message)
     {
-        var reduction = _runtime.Send(message);
-        if (reduction.Notices.Any(notice => notice.Important)) _notify();
+        _runtime.Send(message);
         Draft = "";
         StartPending();
         Update();
     }
     private void Accept(OperationEvent input)
     {
-        var reduction = _runtime.Accept(input);
-        if (reduction.Notices.Any(notice => notice.Important)) _notify();
+        _runtime.Accept(input);
         Update();
     }
     public void PreviewConnectionLoss(bool disconnected)
@@ -215,11 +222,11 @@ public sealed class DemoSessionViewModel : ObservableObject
     }
     private void Update()
     {
-        while (Messages.Count < Checkpoint.Messages.Length)
+        while (_queuedMessages < Checkpoint.Messages.Length)
         {
-            var message = Checkpoint.Messages[Messages.Count];
-            Messages.Add(new(message.Sender, message.Text, message.SentAt, message.Sender == "You") { IsSystem = message.IsSystem });
+            _delivery.Enqueue(Checkpoint.Messages[_queuedMessages++], DateTimeOffset.UtcNow, _chatInitialized);
         }
+        FlushChat(); _chatInitialized = true;
         foreach (var row in Services)
         {
             var service = State.Session.Services[row.Kind];
@@ -240,8 +247,23 @@ public sealed class DemoSessionViewModel : ObservableObject
         Approvals.Clear();
         foreach (var approval in State.Session.Approvals.Where(approval => !approval.IsInvalidated)) Approvals.Add(new(approval.Kind, approval.ApprovedAt, approval.SessionId));
         QuickReplies.Clear();
-        if (!ShowRecovery && Stage != DemoStage.Complete) foreach (string reply in LocalConversationEngine.QuickReplies(_runtime.Context)) QuickReplies.Add(reply);
+        if (!ShowRecovery && Stage != DemoStage.Complete && !_delivery.HasPendingDispatcher) foreach (string reply in LocalConversationEngine.QuickReplies(_runtime.Context)) QuickReplies.Add(reply);
         foreach (string property in new[] { nameof(Stage), nameof(StageLabel), nameof(GateLabel), nameof(Overview), nameof(AdvanceLabel), nameof(CanAdvance), nameof(CompletedSummary), nameof(HasQuickReplies), nameof(IsInterrupted), nameof(ShowRecovery), nameof(RecoveryText), nameof(CanEditServices), nameof(PendingAction), nameof(HasPendingAction), nameof(Dispatcher), nameof(Initials), nameof(PersonaDescription) }) Raise(property);
         foreach (var command in new[] { AdvanceCommand, SkipCommand, CancelCommand, ResumeCommand, ObserveCancellationCommand, ConfirmActionCommand }) command.Refresh();
     }
+    private void FlushChat()
+    {
+        bool wasPending = _delivery.HasPendingDispatcher;
+        bool incoming = false;
+        foreach (var delivered in _delivery.Drain(DateTimeOffset.UtcNow, message => ChatDeliveryQueue.IsRelevant(message, State.Question)))
+        {
+            var message = delivered.Message;
+            Messages.Add(new(message.Sender, message.Text, message.SentAt, message.Sender == "You") { IsSystem = message.IsSystem });
+            if (delivered.Notify && message.Sender == "You") MessageSent?.Invoke();
+            if (delivered.Notify && ConversationPresentation.ShouldNotify(message)) incoming = true;
+        }
+        if (incoming) _notify();
+        if (wasPending && !_delivery.HasPendingDispatcher && _deliveryTimer is not null) Update();
+    }
+    public void Dispose() { _deliveryTimer?.Stop(); _delivery.Clear(); }
 }

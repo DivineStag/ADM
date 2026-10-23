@@ -1,0 +1,23 @@
+{
+  "reviewedOn": "2026-10-22",
+  "outgoing": {
+    "title": "Pop",
+    "creator": "DRAGON-STUDIO",
+    "assetId": "402324",
+    "source": "https://pixabay.com/sound-effects/film-special-effects-pop-402324/",
+    "license": "https://pixabay.com/service/terms/",
+    "summary": "https://pixabay.com/service/license-summary/",
+    "sha256": "BB343A49535045EE3350F30FE01848CE8F933B1394710A71069C96435116AF54",
+    "use": "Integrated outgoing chat sound in ADM. Not offered as a standalone sound download.",
+    "provenance": "File supplied by project owner; exact public asset page and its Content License link verified."
+  },
+  "incoming": {
+    "suppliedName": "bible_images-text-message-sound-effect-5-386088.mp3",
+    "creatorAsSupplied": "bible_images",
+    "assetIdAsSupplied": "386088",
+    "sourceAsConfirmedByOwner": "https://pixabay.com/",
+    "license": "https://pixabay.com/service/terms/",
+    "sha256": "D03BBDF4F72384121A72FAFBEB4C19D84E018DF8528E819F608F88F203AB76D1",
+    "provenance": "Owner confirms this was obtained from Pixabay. Exact asset page was not independently retrieved. Optional local/package asset; public source uses the original generated WAV fallback."
+  }
+}

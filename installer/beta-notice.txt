@@ -6,6 +6,6 @@ This installer includes the application and its runtime. You do not need to inst
 
 ADM installs for your Windows account. Your profiles and history are stored separately and kept when uninstalling.
 
-This local beta is unsigned. It has not been qualified for public distribution. Runtime redistribution permissions, supplied media rights and the live aircraft test matrix remain under review.
+This local beta is unsigned. It has not been qualified for public distribution. Microsoft runtime redistribution permission, release signing and final live aircraft qualification remain outstanding. Audio provenance and third-party terms are recorded in the installed licensing notices.
 
 Pushback always belongs to the pilot.

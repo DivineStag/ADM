@@ -9,6 +9,13 @@ namespace ADM.Desktop.Tests;
 public sealed class NotificationAssetTests
 {
     [Fact]
+    public void Outgoing_pop_is_packaged_unchanged()
+    {
+        string path = NotificationPlayer.OutgoingAssetPath(AppContext.BaseDirectory);
+        Assert.True(File.Exists(path));
+        Assert.Equal("BB343A49535045EE3350F30FE01848CE8F933B1394710A71069C96435116AF54", Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))));
+    }
+    [Fact]
     public void System_lines_never_notify_even_if_their_key_matches_an_important_dispatcher_event()
     {
         var message = new ConversationMessage(Guid.NewGuid(), Guid.NewGuid(), "boarding.approval:1", "Sarah", "Ready to board?", DateTimeOffset.UtcNow);

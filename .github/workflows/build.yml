@@ -1,5 +1,6 @@
 name: Windows foundation
 on:
+  workflow_dispatch:
   push:
   pull_request:
 permissions:
@@ -8,11 +9,14 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - run: dotnet restore ADM.sln
+      - name: Dependency security review
+        shell: pwsh
+        run: ./scripts/Test-DependencySecurity.ps1
       - run: dotnet format ADM.sln --verify-no-changes --no-restore
       - run: dotnet build ADM.sln --no-restore --configuration Release
       - run: dotnet test ADM.sln --no-build --configuration Release --logger trx --results-directory artifacts/test-results
@@ -22,12 +26,12 @@ jobs:
       - name: WPF interface acceptance
         shell: pwsh
         run: ./scripts/Test-DesktopUi.ps1 -Configuration Release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: test-results
           path: artifacts/test-results
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: desktop-ui-previews

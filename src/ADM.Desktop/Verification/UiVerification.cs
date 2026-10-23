@@ -101,15 +101,43 @@ internal static class UiVerification
                 fixture.SetupReviewed = true; await Navigate(Descendants<Button>(chat).Single(button => Equals(button.Content, "Save aircraft setup"))); await Layout(window);
                 Require(!fixture.NeedsSetup, "The setup acknowledgement dismisses the setup card.");
                 Require(Descendants<TextBlock>(chat).Any(text => text.Name == "SystemUpdate" && text.Text == "Water started" && text.IsVisible), "Quiet service lines appear without dispatcher attribution.");
+                VerifyBubbleColours();
+                Require(Descendants<Button>(chat).Any(button => Equals(button.Content, "Start services")), "Quick replies show brief button labels.");
+                Require(!Descendants<Button>(chat).Any(button => Equals(button.Content, "Open GSX")), "Chat has no Open GSX browser shortcut.");
                 Require(Descendants<Button>(chat).Single(button => Equals(button.Content, "Retry connection")).IsVisible, "A problem displays a specific recovery button directly in Chat.");
                 await Navigate(Descendants<Button>(chat).Single(button => Equals(button.Content, "Retry connection"))); Require(fixture.RecoveryClicks == 1, "The recovery button invokes exactly one bound action.");
-                Capture(window, directory, "m8-chat-recovery-dark"); vm.Theme = "Light"; await Layout(window); Capture(window, directory, "m8-chat-recovery-light");
+                Capture(window, directory, "m8-chat-recovery-dark"); vm.Theme = "Light"; await Layout(window); VerifyBubbleColours(); Capture(window, directory, "m8-chat-recovery-light");
+                void VerifyBubbleColours()
+                {
+                    var bubbles = Descendants<Border>(chat).Where(border => border.Name == "Bubble" && border.DataContext is DemoMessage { IsSystem: false }).ToArray();
+                    var pilot = bubbles.Single(border => border.DataContext is DemoMessage { IsPilot: true });
+                    var dispatcher = bubbles.Single(border => border.DataContext is DemoMessage { IsPilot: false });
+                    Require(((SolidColorBrush)pilot.Background).Color == ((SolidColorBrush)window.FindResource("PilotBubble")).Color &&
+                        ((SolidColorBrush)dispatcher.Background).Color == ((SolidColorBrush)window.FindResource("DispatcherBubble")).Color &&
+                        ((SolidColorBrush)pilot.Background).Color != ((SolidColorBrush)dispatcher.Background).Color,
+                        "Pilot and dispatcher have distinct bubble colours in " + vm.Theme + " theme.");
+                }
             }
             finally { window.Content = original; }
             vm.Live.AutoConnect = false; await vm.Live.StartAutomaticAsync(); await Layout(window);
             Require(vm.IsLive && vm.Live.HasRecovery && vm.Live.RecoveryButton == "Retry connection" && !vm.Live.HasOperation, "A real disconnected live workspace offers connection recovery without starting a sample.");
-            var player = new MediaPlayer(); var decoded = new TaskCompletionSource<bool>(); player.MediaOpened += (_, _) => decoded.TrySetResult(true); player.MediaFailed += (_, args) => decoded.TrySetException(args.ErrorException);
-            try { player.Open(new Uri(ADM.Desktop.Services.NotificationPlayer.AssetPath(AppContext.BaseDirectory))); await decoded.Task.WaitAsync(TimeSpan.FromSeconds(8)); Require(player.NaturalDuration.HasTimeSpan, "The selected local notification sound decodes without playing it."); } finally { player.Close(); }
+            foreach (string asset in new[] { ADM.Desktop.Services.NotificationPlayer.AssetPath(AppContext.BaseDirectory), ADM.Desktop.Services.NotificationPlayer.OutgoingAssetPath(AppContext.BaseDirectory) })
+            {
+                Require(File.Exists(asset) && new FileInfo(asset).Length > 100, "Notification asset is packaged: " + Path.GetFileName(asset));
+                var player = new MediaPlayer(); var decoded = new TaskCompletionSource<bool>(); player.MediaOpened += (_, _) => decoded.TrySetResult(true); player.MediaFailed += (_, args) => decoded.TrySetException(args.ErrorException);
+                try { player.Open(new Uri(asset)); await decoded.Task.WaitAsync(TimeSpan.FromSeconds(8)); Require(player.NaturalDuration.HasTimeSpan, "Notification sound decodes without playing: " + Path.GetFileName(asset)); }
+                catch (Exception exception) when (Environment.GetEnvironmentVariable("CI") == "true" && exception.HResult == unchecked((int)0xC00D11BA))
+                { checks.Add("SKIP: Windows hosted runner has no audio device for " + Path.GetFileName(asset) + "; local decode qualification is required."); }
+                finally { player.Close(); }
+            }
+            using (var delayed = new DemoSessionViewModel(new UiClock(), () => { }, new ADM.Conversation.LocalConversationEngine(ADM.Conversation.PersonaCatalogue.LoadBundled()), ADM.Conversation.PersonaCatalogue.LoadBundled(), chatTiming: new(true)))
+            {
+                var elapsed = Stopwatch.StartNew(); delayed.Send("How are you?");
+                string reply = delayed.Checkpoint.Messages[^1].Text;
+                Require(delayed.Messages.Any(message => message.IsPilot && message.Text == "How are you?") && !delayed.Messages.Any(message => message.Text == reply), "Pilot text appears immediately while the dispatcher reply waits.");
+                while (!delayed.Messages.Any(message => message.Text == reply) && elapsed.Elapsed < TimeSpan.FromSeconds(6)) await Task.Delay(100);
+                Require(delayed.Messages.Any(message => message.Text == reply) && elapsed.Elapsed >= TimeSpan.FromSeconds(1) && elapsed.Elapsed < TimeSpan.FromSeconds(6), "The WPF dispatcher delivers its reply after a bounded random delay.");
+            }
             Require(trace.Errors.Count == 0, "No WPF binding errors across navigation, themes, profiles or recovery.");
             File.WriteAllLines(Path.Combine(directory, "ui-results.txt"), checks);
         }
@@ -183,16 +211,15 @@ internal static class UiVerification
         public string RecoveryTitle => "Let's reconnect";
         public string RecoveryDetail => "Start MSFS and let GSX load. I'll check the connection again.";
         public string RecoveryButton => "Retry connection";
-        public bool HasGsxShortcut => false;
         public int RecoveryClicks { get; private set; }
         public RelayCommand CompleteSetupCommand { get; }
         public RelayCommand RecoveryCommand { get; }
-        public RelayCommand OpenGsxCommand { get; } = new(_ => { });
         public RelayCommand ClearChatCommand { get; } = new(_ => { });
         public RelayCommand SendCommand { get; } = new(_ => { });
         public RelayCommand QuickReplyCommand { get; } = new(_ => { });
-        public ObservableCollection<DemoMessage> Messages { get; } = [new("Sarah", "I'll take care of the services.", DateTimeOffset.UtcNow, false), new("", "Water started", DateTimeOffset.UtcNow, false) { IsSystem = true }];
-        public ObservableCollection<string> QuickReplies { get; } = [];
+        public ObservableCollection<DemoMessage> Messages { get; } = [new("Sarah", "I'll take care of the services.", DateTimeOffset.UtcNow, false), new("You", "Please can you start the services?", DateTimeOffset.UtcNow, true), new("", "Water started", DateTimeOffset.UtcNow, false) { IsSystem = true }];
+        public ObservableCollection<string> QuickReplies { get; } = ["Yes, start services"];
         public ChatFixture() { CompleteSetupCommand = new(_ => NeedsSetup = false, _ => SetupReviewed); RecoveryCommand = new(_ => RecoveryClicks++); }
     }
+    private sealed class UiClock : ADM.Contracts.IOperationalClock { public DateTimeOffset UtcNow => DateTimeOffset.UtcNow; }
 }

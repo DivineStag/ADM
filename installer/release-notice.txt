@@ -1,0 +1,15 @@
+ADM - Aircraft Dispatch Manager
+
+ADM is freeware. You may use official releases free of charge. Source reuse and
+redistribution require permission under the accompanying ADM freeware licence.
+Third-party components and sounds retain their own licence terms.
+
+This installer includes the application and required runtime. Pilots do not need
+the MSFS SDK or a separate .NET installation. MSFS 2024 and GSX are installed
+separately. Disable competing GSX service automation in Any2GSX while retaining
+the aircraft's required integration.
+
+ADM installs for your Windows account and keeps personal profiles/history when
+uninstalled. Boarding requires your approval. The final door question is a
+conversational sign-off; physical doors, equipment and pushback remain with you
+and GSX. No Microsoft, Asobo or FSDT endorsement is implied.

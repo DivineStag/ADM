@@ -34,16 +34,16 @@ public sealed class M8RecoveryTests
     public void Paused_unknown_delivery_offers_review_without_promising_to_replay_it()
     {
         Assert.Equal(RecoveryAction.Resume, RecoveryGuide.Choose(Ready with { Armed = false }).Action);
-        Assert.Equal(RecoveryAction.OpenGsx, RecoveryGuide.Choose(Ready with { HasError = true }).Action);
+        Assert.Equal(RecoveryAction.Recheck, RecoveryGuide.Choose(Ready with { HasError = true }).Action);
         Assert.Equal(RecoveryAction.EnterFlight, RecoveryGuide.Choose(Ready with { HasFlight = false, HasOperation = false }).Action);
         Assert.Equal(RecoveryAction.Prepare, RecoveryGuide.Choose(Ready with { HasError = true, HasOperation = false }).Action);
     }
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]
-    public void GSX_input_offers_the_provider_UI_before_any_new_request(bool prompt, bool menu)
+    public void GSX_input_offers_a_state_recheck_without_opening_a_browser(bool prompt, bool menu)
     {
-        Assert.Equal(RecoveryAction.OpenGsx, RecoveryGuide.Choose(Ready with { PromptOpen = prompt, MenuOpen = menu, Restartable = ServiceKind.Refuelling }).Action);
+        Assert.Equal(RecoveryAction.Recheck, RecoveryGuide.Choose(Ready with { PromptOpen = prompt, MenuOpen = menu, Restartable = ServiceKind.Refuelling }).Action);
     }
     [Fact]
     public void Missing_runtime_repairs_ADM_without_requiring_a_pilot_to_install_the_developer_SDK()

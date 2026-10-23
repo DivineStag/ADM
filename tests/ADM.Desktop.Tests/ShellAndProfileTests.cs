@@ -14,7 +14,9 @@ public sealed class ShellAndProfileTests
     {
         public event EventHandler<string>? PlaybackFailed;
         public List<double> Volumes { get; } = [];
+        public List<double> OutgoingVolumes { get; } = [];
         public void Play(double volume) => Volumes.Add(volume);
+        public void PlayOutgoing(double volume) => OutgoingVolumes.Add(volume);
         public void Fail() => PlaybackFailed?.Invoke(this, "No audio device");
     }
     private static MainViewModel Create(Sound sound)
@@ -45,7 +47,9 @@ public sealed class ShellAndProfileTests
         vm.Volume = volume;
         vm.PreviewSoundCommand.Execute(null);
         vm.Demo.AdvanceCommand.Execute(null);
+        vm.Demo.Send("How are you?");
         Assert.Empty(sound.Volumes);
+        Assert.Empty(sound.OutgoingVolumes);
     }
 
     [Fact]
@@ -56,6 +60,7 @@ public sealed class ShellAndProfileTests
         vm.Volume = 30;
         vm.Demo.Send("Are we ready?");
         Assert.Empty(sound.Volumes);
+        Assert.Equal(0.3, Assert.Single(sound.OutgoingVolumes));
         vm.Demo.AdvanceCommand.Execute(null);
         Assert.Equal(0.3, Assert.Single(sound.Volumes));
         sound.Fail();

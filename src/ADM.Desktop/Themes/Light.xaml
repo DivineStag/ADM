@@ -9,5 +9,7 @@
     <SolidColorBrush x:Key="Stroke" Color="#CFDDDA" />
     <SolidColorBrush x:Key="PilotBubble" Color="#245F55" />
     <SolidColorBrush x:Key="PilotInk" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="DispatcherBubble" Color="#E4ECF8" />
+    <SolidColorBrush x:Key="DispatcherInk" Color="#1E3557" />
     <SolidColorBrush x:Key="Avatar" Color="#D9EBE5" />
 </ResourceDictionary>

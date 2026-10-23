@@ -1,9 +1,7 @@
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ADM.Domain;
-using ADM.Integrations.Gsx;
 using Microsoft.Win32;
 
 namespace ADM.Desktop.Services;
@@ -26,14 +24,5 @@ public sealed class SupportReportExporter : ISupportReportExporter
         if (dialog.ShowDialog(System.Windows.Application.Current.MainWindow) != true) return false;
         await File.WriteAllTextAsync(dialog.FileName, SupportReportJson.Serialize(report), cancellationToken);
         return true;
-    }
-}
-public interface IGsxHelpLauncher { void Open(); }
-public sealed class GsxHelpLauncher : IGsxHelpLauncher
-{
-    public void Open()
-    {
-        int port = GsxPortDiscovery.Read(new GsxRemoteOptions().IniPath);
-        Process.Start(new ProcessStartInfo($"http://127.0.0.1:{port}/") { UseShellExecute = true });
     }
 }

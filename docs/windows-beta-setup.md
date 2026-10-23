@@ -5,7 +5,7 @@ Pilots need Windows x64, MSFS 2024 and GSX. **No MSFS SDK, .NET installation or 
 1. Run **ADM-Setup.exe**. Follow the Windows setup wizard. Installation is for your account and does not request administrator rights. A Start menu entry and Windows Apps uninstall entry are created; a desktop shortcut is optional.
 2. Load a flight at a stand in MSFS. Let GSX load its plan and enable its local Remote API. Open Aircraft Dispatch Manager from Start.
 3. Review each aircraft's integration setup once. Keep needed Any2GSX fuel/payload integration and disable its competing service automation.
-4. Approve services in Chat. Boarding and closure each need a separate approval. Service progress appears quietly in Chat.
+4. Approve services in Chat. Boarding and the final sign-off each need a separate approval. The door question finishes ADM only; doors, equipment and pushback remain with you and GSX. Service progress appears quietly in Chat.
 
 Tabs: Chat, Profiles, Flight, Settings. The 25 supplied default profiles are included; your saved edits take precedence and remain through updates. The imported validated ICAO callsign selects the airline and aircraft in Profiles. A registration or two-letter commercial flight number is not treated as an ICAO airline code.
 

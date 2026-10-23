@@ -10,14 +10,14 @@ Run **ADM-Setup.exe** and follow the normal Windows setup wizard. It installs pe
 
 1. Load an aircraft at a stand and let GSX load its flight plan. Enable GSX's local Remote API.
 2. Open ADM; connections start automatically. For each aircraft, review the integration setup once. Keep needed Any2GSX fuel/payload integration and disable its competing service automation.
-3. Approve the dispatcher's start question in **Chat**. Boarding and closure each need separate approval.
+3. Approve the dispatcher's start question in **Chat**. Boarding and the final conversational sign-off each need separate approval.
 4. Follow any specific recovery button shown in Chat. Quiet service-status lines have no message sound.
 
 The four tabs are **Chat**, **Profiles**, **Flight** and **Settings**. The supplied logo is embedded in the app/installer icon. All 25 supplied profiles are bundled defaults; personal changes take precedence. The flight callsign selects the matching airline and aircraft in Profiles. Profiles contains airline creation, aircraft overrides, service choices and optional ordering. Settings contains theme, sound, optional simulated delays and support. Final arrival and deboarding are absent from public choices. Changes to saved profiles apply to future operations, never silently to active work.
 
 GSX supplies its cached plan and available planned load figures, which are not a final loadsheet. No separate ADM SimBrief account/import is required. If a usable matching plan is unavailable, use Flight's optional manual entry. Normal reopening starts a clean visible session; saved profiles/setup and archived operational audit remain.
 
-Default services are water, lavatory, fuel and catering in the preboarding phase, then boarding and finish. Fuel and catering have separate requests: catering waits for observed GSX fuel Requested/Active/Completed, not merely a command receipt. Live availability and aircraft capabilities govern execution. Boarding cannot precede required fuel or its other prerequisites. Unsupported cancellation, doors and equipment actions remain manual; no pushback command exists.
+Default services are water, lavatory, fuel and catering in the preboarding phase, then boarding and finish. Fuel and catering have separate requests: catering waits for observed GSX fuel Requested/Active/Completed, not merely a command receipt. Live availability and aircraft capabilities govern execution. Boarding cannot precede required fuel or its other prerequisites. Unsupported cancellation remains manual. The closing-doors question is a conversational sign-off only: approval finishes ADM without closing doors, disconnecting equipment or requiring manual release confirmations. Physical actions remain with the pilot and GSX; no pushback command exists.
 
 ## Developer build
 
@@ -35,9 +35,9 @@ Developer builds use the official MSFS 2024 SDK at `C:\MSFS 2024 SDK`; override 
 
 ## Verification and release status
 
-The M8 follow-up adds a conventional installer, GitHub update checks for configured builds, bundled profiles, Windows-managed input bounds and Fenix parking-brake support. The Release build has zero warnings/errors; 363 automated tests and 33 UI checks pass. The native installer mechanism previously passed 12 checks on beta.2. Details are recorded in [the follow-up report](docs/m8-distribution-followup.md) and [current GSX readiness policy](docs/gsx-readiness-policy.md). Earlier M8 script-installer results remain historical evidence; they are not acceptance for the new native setup.
+The current beta includes natural local chat, varied quick replies, a separate outgoing sound, 1–5 second dispatcher reply delays, distinct message colours and a conversational door sign-off. Approving that sign-off finishes ADM without door/equipment commands. The Open GSX browser shortcut is removed. Services continue immediately while messages wait to appear.
 
-See [M8 report and file inventory](docs/m8-report.md), [release checklist](docs/release-checklist.md), [qualification matrix](docs/beta-test-matrix.md), [privacy](docs/privacy.md) and [licensing review](docs/licensing/release-review.md). M8's public-release exit remains open for clean Windows testing, the live matrix and redistribution/licensing decisions. M4/M5 full live handling acceptance is also pending. No next milestone has begun.
+ADM is freeware with source reuse rights reserved under [the ADM licence](LICENSE). Third-party components and audio retain their own terms. See [current release readiness](docs/public-release-readiness.md), [licensing review](docs/licensing/release-review.md) and [media provenance](docs/licensing/media-provenance.json). Earlier milestone reports are historical. No public installer has been released yet.
 
 ```powershell
 dotnet format ADM.sln --verify-no-changes --no-restore
@@ -46,7 +46,7 @@ dotnet format ADM.sln --verify-no-changes --no-restore
 .\scripts\Publish-Installer.ps1
 ```
 
-Data stays in `%LOCALAPPDATA%\ADM`. Uninstall retains it. Support export is an explicit local save of an allowlisted status report; nothing is uploaded. See [architecture](docs/architecture.md), [state machine](docs/state-machine.md), [GSX evidence](docs/gsx-api-capabilities.md) and [compatibility](docs/compatibility.md). Historical milestone reports retain their original context; this README and M8 report describe the current UI/deployment.
+Data stays in `%LOCALAPPDATA%\ADM`. Uninstall retains it. Support export is an explicit local save of an allowlisted status report; nothing is uploaded. See [architecture](docs/architecture.md), [state machine](docs/state-machine.md), [GSX evidence](docs/gsx-api-capabilities.md) and [compatibility](docs/compatibility.md). Historical milestone reports retain their original context; this README and the current release-readiness report describe the current UI/deployment.
 
 ## GitHub and updates
 

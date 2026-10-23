@@ -1,5 +1,6 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:presentation="clr-namespace:ADM.Desktop.Presentation">
     <BooleanToVisibilityConverter x:Key="VisibleIf" />
+    <presentation:QuickChatLabelConverter x:Key="QuickChatLabel" />
     <Style x:Key="KeyboardFocus">
         <Setter Property="Control.Template">
             <Setter.Value><ControlTemplate><Border BorderBrush="{DynamicResource Accent}" BorderThickness="2" CornerRadius="10" Margin="-3" /></ControlTemplate></Setter.Value>

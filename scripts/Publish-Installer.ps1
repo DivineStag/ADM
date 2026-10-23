@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 param(
-    [string]$Version = '0.8.0-beta.4',
+    [string]$Version = '0.8.0-beta.7',
     [string]$Repository = 'DivineStag/ADM',
     [string]$CompilerPath = '',
     [string]$SignCommand = ''
@@ -26,6 +26,7 @@ foreach ($file in @('SimConnect.dll','Microsoft.FlightSimulator.SimConnect.dll',
 Get-ChildItem -LiteralPath $payload -Filter '*.pdb' -File | ForEach-Object { Remove-Item -LiteralPath $_.FullName }
 $documentation = Join-Path $payload 'Documentation'
 $null = New-Item -ItemType Directory -Path $documentation
+Copy-Item -LiteralPath (Join-Path $workspaceRoot 'LICENSE') -Destination (Join-Path $payload 'LICENSE.txt')
 foreach ($file in @('privacy.md','windows-beta-setup.md','github-distribution.md','gsx-readiness-policy.md','release-checklist.md','beta-test-matrix.md')) {
     Copy-Item -LiteralPath (Join-Path $workspaceRoot ('docs\' + $file)) -Destination $documentation
 }

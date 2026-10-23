@@ -39,7 +39,7 @@ public sealed class LocalDispatchSession
         get
         {
             lock (_sync) return new(_checkpoint.State.Session, _checkpoint.State.Connection,
-                _checkpoint.State.Question, _checkpoint.State.FocusService, _checkpoint.Messages.Where(message => !message.IsSystem).TakeLast(3).Select(message => message.Text).ToImmutableArray());
+                _checkpoint.State.Question, _checkpoint.State.FocusService, _checkpoint.Messages.Where(message => !message.IsSystem && message.Sender != "You").TakeLast(8).Select(message => message.Text).ToImmutableArray());
         }
     }
     public Reduction Accept(OperationEvent input)
@@ -94,7 +94,22 @@ public sealed class LocalDispatchSession
                 $"pilot:{metadata.EventId}", "You", text.Trim(), metadata.OccurredAt))
             };
             var intent = _conversation.Parse(text, Context);
-            if (intent.Kind == PilotIntentKind.Acknowledgement) return new(_checkpoint.State, [], []);
+            string? chatKey = intent.Kind switch
+            {
+                PilotIntentKind.Greeting => "greeting",
+                PilotIntentKind.Wellbeing => "wellbeing",
+                PilotIntentKind.Busy => "busy",
+                PilotIntentKind.Farewell => "farewell",
+                PilotIntentKind.AllGood => "all-good",
+                PilotIntentKind.Acknowledgement => text.Contains("no", StringComparison.OrdinalIgnoreCase) && !text.Contains("thank", StringComparison.OrdinalIgnoreCase) ? "wait" : "thanks",
+                PilotIntentKind.Unknown => "unknown",
+                _ => null
+            };
+            if (chatKey is not null)
+            {
+                Publish(new($"chat.{chatKey}:{metadata.EventId}"), metadata);
+                return new(_checkpoint.State, [], []);
+            }
             PilotDirective directive = intent.Kind switch
             {
                 PilotIntentKind.GetStatus => PilotDirective.Status,
@@ -131,6 +146,15 @@ public sealed class LocalDispatchSession
     private bool Publish(WorkflowNotice notice, EventMetadata metadata)
     {
         if (_checkpoint.DeliveredKeys.Contains(notice.Key)) return false;
+        // Flight/gate figure refreshes may revise a still-unanswered start question.
+        // Keep its new domain revision, but do not repeat the same invitation in chat.
+        if (notice.Key.StartsWith("services.start.", StringComparison.Ordinal) &&
+            _checkpoint.Messages.Skip(_checkpoint.VisibleMessageOffset).Any(message => message.SemanticKey.StartsWith("services.start.", StringComparison.Ordinal)) &&
+            _checkpoint.State.ServiceStartApproval is null)
+        {
+            _checkpoint = _checkpoint with { DeliveredKeys = _checkpoint.DeliveredKeys.Add(notice.Key) };
+            return false;
+        }
         var decision = _conversation.Evaluate(Context, new(metadata, notice.Key, notice.Text));
         if (string.IsNullOrWhiteSpace(decision.Message)) return false;
         _checkpoint = _checkpoint with

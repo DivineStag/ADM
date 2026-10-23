@@ -56,7 +56,7 @@ public sealed class SimpleAssistantWorkflowTests
                 new("A20N", Enum.GetValues<ServiceKind>().ToImmutableHashSet(), [], "Synthetic receipt fixture"), Simulator, CancellationToken.None);
             for (int i = 0; i < 30; i++) await coordinator.ObserveAsync(Simulator, CancellationToken.None);
             var question = Assert.Single(coordinator.Checkpoint!.Messages, message => message.SemanticKey.StartsWith("services.start.gsx", StringComparison.Ordinal));
-            Assert.Contains("Flight plan", question.Text); Assert.Contains("GSX", question.Text); Assert.DoesNotContain("loadsheet", question.Text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("flight plan", question.Text, StringComparison.OrdinalIgnoreCase); Assert.Contains("GSX", question.Text); Assert.DoesNotContain("loadsheet", question.Text, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(loadFigures, question.Text.Contains("planned load", StringComparison.Ordinal)); Assert.Empty(provider.Sent);
             await coordinator.SendAsync("Yes", Simulator, CancellationToken.None); Assert.Single(provider.Sent, command => command.Kind == ServiceKind.Water);
         }

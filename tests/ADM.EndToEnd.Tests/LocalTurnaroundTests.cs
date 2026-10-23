@@ -98,11 +98,11 @@ public sealed class LocalTurnaroundTests
         runtime.Accept(new ObserveService(events.Meta(), ServiceKind.Boarding, ServiceState.Completed));
         Assert.Equal(QuestionKind.Closure, runtime.Checkpoint.State.Question!.Kind);
         runtime.Send("close up and disconnect");
-        Assert.NotEqual(WorkflowStage.Completed, runtime.Checkpoint.State.Session.Stage);
-        foreach (var action in Enum.GetValues<ReleaseAction>()) runtime.Accept(new ObserveRelease(events.Meta(), action));
         Assert.Equal(WorkflowStage.Completed, runtime.Checkpoint.State.Session.Stage);
+        Assert.DoesNotContain(runtime.Checkpoint.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
+        Assert.All(runtime.Checkpoint.State.Releases.Values, release => Assert.False(release.IsSatisfied));
         Assert.Equal(2, runtime.Checkpoint.State.Session.Approvals.Count(approval => !approval.IsInvalidated));
-        Assert.Contains(runtime.Checkpoint.Messages, message => message.SemanticKey == "handover.simulated");
+        Assert.Contains(runtime.Checkpoint.Messages, message => message.SemanticKey == "handover.signoff");
         Assert.Equal(runtime.Checkpoint.Messages.Length, runtime.Checkpoint.Messages.Select(message => message.Id).Distinct().Count());
         Assert.All(runtime.Checkpoint.State.Commands, command => Assert.Equal(runtime.Checkpoint.State.Session.Plan.SnapshotId, command.PlanSnapshotId));
     }

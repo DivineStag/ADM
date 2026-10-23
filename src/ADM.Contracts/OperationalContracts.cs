@@ -9,7 +9,8 @@ public enum PilotIntentKind
 {
     GetStatus, GetDelay, ApproveBoarding, HoldBoarding, ApproveClosure,
     HoldClosure, SkipService, CancelService, ResumeService, SkipSimulatedDelay, GetHelp, Acknowledgement, Unknown,
-    ApproveService, ConfirmSkip, ConfirmGate, ConfirmFuel, ConfirmRelease, KeepService, ConfirmServiceCompletion, ApproveServicesStart, HoldServicesStart
+    ApproveService, ConfirmSkip, ConfirmGate, ConfirmFuel, ConfirmRelease, KeepService, ConfirmServiceCompletion, ApproveServicesStart, HoldServicesStart,
+    Greeting, Wellbeing, Busy, Farewell, AllGood
 }
 public sealed record PilotIntent(PilotIntentKind Kind, ServiceKind? Service, ReleaseAction? Release = null);
 public sealed record ConversationDecision(string? SemanticKey, string? Message, ImmutableArray<string> QuickReplies);

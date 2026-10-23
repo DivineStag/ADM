@@ -7,7 +7,7 @@ namespace ADM.Desktop;
 
 public enum AppPage { Chat, Profiles, Flight, Settings }
 
-public sealed class MainViewModel : ObservableObject
+public sealed class MainViewModel : ObservableObject, IDisposable
 {
     private readonly INotificationPlayer _sound;
     private AppPage _selectedPage;
@@ -23,7 +23,7 @@ public sealed class MainViewModel : ObservableObject
     private bool _hadLiveOperation;
 
     public MainViewModel(IOperationalClock clock, IServicePlanResolver resolver, INotificationPlayer sound, IUiPreferencesStore preferencesStore,
-        IConversationEngine conversation, PersonaCatalogue personas, LiveOperationsViewModel? live = null, IProfileTransfer? profileTransfer = null, IProfileFileDialogs? profileDialogs = null, ISupportReportExporter? supportReports = null, GitHubUpdates? updates = null)
+        IConversationEngine conversation, PersonaCatalogue personas, LiveOperationsViewModel? live = null, IProfileTransfer? profileTransfer = null, IProfileFileDialogs? profileDialogs = null, ISupportReportExporter? supportReports = null, GitHubUpdates? updates = null, ChatTimingOptions? chatTiming = null)
     {
         _sound = sound;
         PreferencesLoad loaded = preferencesStore.Load();
@@ -55,6 +55,7 @@ public sealed class MainViewModel : ObservableObject
         if (Live is not null)
         {
             Live.ImportantMessage += PlayIncoming;
+            Live.MessageSent += PlayOutgoing;
             Live.FlightEntryRequested += () => SelectedPage = AppPage.Flight;
             Live.FlightProfileChanged += Profiles.SelectFlightProfile;
         }
@@ -81,7 +82,8 @@ public sealed class MainViewModel : ObservableObject
             if (showPreparedChat) SelectedPage = AppPage.Chat;
             foreach (string name in new[] { nameof(IsLive), nameof(ShowDemoChat), nameof(ShowLiveChat), nameof(HeaderName), nameof(HeaderInitials), nameof(HeaderFlight), nameof(HeaderStage), nameof(HeaderGate), nameof(HeaderPersona), nameof(ConnectionText), nameof(ShowDemoRecovery) }) Raise(name);
         };
-        Demo = new(clock, PlayIncoming, conversation, personas, () => Profiles.SavedPhases("BAW", ADM.Domain.FlightOperationType.Turnaround));
+        Demo = new(clock, PlayIncoming, conversation, personas, () => Profiles.SavedPhases("BAW", ADM.Domain.FlightOperationType.Turnaround), chatTiming);
+        Demo.MessageSent += PlayOutgoing;
         Demo.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(Demo.IsInterrupted)) Raise(nameof(PreviewDisconnected));
@@ -157,4 +159,9 @@ public sealed class MainViewModel : ObservableObject
         SoundStatus = "Playing the local notification preview.";
         _sound.Play(Volume / 100);
     }
+    private void PlayOutgoing()
+    {
+        if (!Muted && !DoNotDisturb && Volume > 0) _sound.PlayOutgoing(Volume / 100);
+    }
+    public void Dispose() => Demo.Dispose();
 }

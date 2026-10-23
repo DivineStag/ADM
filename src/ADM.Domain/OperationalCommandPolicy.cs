@@ -14,9 +14,7 @@ public static class OperationalCommandPolicy
         bool approval(ApprovalKind kind) => command.PrerequisiteRevision == state.Session.PrerequisiteRevision &&
             state.Session.Approvals.Any(item => ApprovalValidity.IsValid(item, state.Session.Id, kind, state.Session.PrerequisiteRevision));
         if (command.Kind == OperationalCommandKind.ReleaseEquipment)
-            return command.Release is { } release && state.SupportedReleaseActions.Contains(release) && !state.Releases[release].IsSatisfied &&
-                state.Session.Stage == WorkflowStage.ClosingAndReleasing && approval(ApprovalKind.Closure) && !state.Session.Holds.Any(hold => hold.IsActive) &&
-                Enum.GetValues<ReleaseAction>().TakeWhile(action => action != release).All(action => state.Releases[action].IsSatisfied);
+            return false; // Physical doors/equipment remain pilot/GSX owned, including restored intents.
         if (command.Service is not { } kind || !state.Session.Services.TryGetValue(kind, out var service)) return false;
         if (command.Kind == OperationalCommandKind.CancelService)
             return service.State == ServiceState.CancelPending && state.CancellableServices.Contains(kind);

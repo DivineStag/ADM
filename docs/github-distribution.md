@@ -24,14 +24,15 @@ The GitHub digest protects against corruption and source substitution outside th
 
 ## Maintainer setup
 
-1. Choose the GitHub owner/repository and original-code licence. Confirm runtime/media distribution rights and finish the live/clean-PC gates before public publication.
+1. The GitHub target is DivineStag/ADM. The owner selected the ADM freeware licence with source reuse rights reserved. Confirm runtime/media distribution rights and finish the live/clean-PC gates before public publication.
 2. Protect the default branch and releases. Create a protected `community-release` environment with required human reviewers.
 3. Provide a controlled Windows x64 release runner labelled `adm-release`, with .NET 10, the official developer SDK, Inno Setup 6.7+ and GitHub CLI. Do not commit proprietary SDK files or certificates. Ordinary CI can build/test without the SDK but cannot produce the live runtime package.
 4. Configure signing on the runner (certificate key stays in its protected store/provider). `ADM_SIGN_COMMAND` in the protected environment passes the runner's configured signing command to Inno's SignTool. Use the Inno `$f` placeholder; do not put a private key in the repository. The draft workflow refuses an unsigned output.
 5. Run the explicit release-draft workflow after review. It creates a **draft**, never publishes automatically. Review contents/signature/qualification, then publish a stable release. The latest-stable updater ignores drafts and prereleases.
 
-Current local installer is unsigned and is only for qualification. GitHub hosting alone does not change Windows' publisher warning. Public source excludes the supplied MP3 pending redistribution evidence, uses the original generated WAV fallback, and excludes SDK/runtime binaries and installers. Local builds retain the supplied MP3 preference. The previous script installer is retained as historical engineering evidence; it is superseded as the pilot delivery path.
+Current local installer is unsigned and is only for qualification. GitHub hosting alone does not change Windows' publisher warning. Public source includes the verified Pixabay outgoing pop with separate licence notices. It retains the original incoming WAV fallback; the owner-supplied incoming MP3 remains optional and is included in local qualification packages. SDK/runtime binaries and installers remain excluded from source. Local builds retain the supplied MP3 preference. The previous script installer is retained as historical engineering evidence; it is superseded as the pilot delivery path.
 
 GSX owns the aircraft's brake/engine and physical service-readiness checks. ADM no longer repeats those cockpit checks; it still observes service availability, approvals, sequencing and current flight/connection identity. See [readiness policy](gsx-readiness-policy.md).
 
-Current access limitation: metadata reads work, but the connected integration refused file writes with HTTP 403 and desktop Git is not signed in. The source is committed locally but not uploaded. See github-connection.md for verification and the concrete GitHub Desktop upload step.
+
+GitHub writes are available and the source is published. Actions are pinned to verified official commits. Controlled release runners must use Actions Runner 2.327.1 or later. See public-release-readiness.md for current checks and remaining release decisions.

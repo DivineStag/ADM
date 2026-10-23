@@ -68,7 +68,6 @@ public sealed class M6RealismTests
             Apply(new ObserveService(Meta(), ServiceKind.Boarding, ServiceState.Active));
             Apply(new ObserveService(Meta(), ServiceKind.Boarding, ServiceState.Completed));
             Runtime.Send("Close up and disconnect");
-            foreach (var action in Enum.GetValues<ReleaseAction>()) { Assert.Equal(action, State.Question?.Release); Runtime.Send("Confirm clear"); }
             Assert.Equal(WorkflowStage.Completed, State.Session.Stage);
         }
     }
@@ -107,7 +106,7 @@ public sealed class M6RealismTests
             Assert.Single(messages, message => message.SemanticKey.StartsWith("boarding.approval", StringComparison.Ordinal));
             Assert.InRange(messages.Count(message => message.SemanticKey.StartsWith("disruption.", StringComparison.Ordinal)), 0, 1);
             Assert.All(messages.Where(message => message.SemanticKey.StartsWith("disruption.", StringComparison.Ordinal)), message => Assert.Contains("simulated", message.Text, StringComparison.OrdinalIgnoreCase));
-            Assert.InRange(messages.Count(message => !message.IsSystem), 10, 20);
+            Assert.InRange(messages.Count(message => !message.IsSystem), 7, 20);
             Assert.InRange(messages.Count(message => message.IsSystem), 0, 12); // Full start/boarding/closure conversation including pilot replies and three manual checks.
             foreach (var message in messages.Where(message => message.SemanticKey == "services.starting")) phrases.Add(message.Text);
             report.Add(new

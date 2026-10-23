@@ -14,27 +14,33 @@
             </StackPanel></Border>
             <ItemsControl ItemsSource="{Binding Messages}" AutomationProperties.Name="Live dispatcher conversation" AutomationProperties.LiveSetting="Polite"><ItemsControl.ItemTemplate><DataTemplate>
             <Grid Margin="0,0,0,14">
-                <Border x:Name="Bubble" Style="{StaticResource Card}" CornerRadius="18,18,18,4" Margin="0,0,20,0"><StackPanel>
-                    <TextBlock Text="{Binding Sender}" Style="{StaticResource Caption}" Margin="0,0,0,5" />
-                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="15" LineHeight="22" />
+                <Border x:Name="Bubble" Style="{StaticResource Card}" Background="{DynamicResource DispatcherBubble}" CornerRadius="18,18,18,4" Margin="0,0,20,0"><StackPanel>
+                    <TextBlock x:Name="SenderText" Text="{Binding Sender}" Style="{StaticResource Caption}" Foreground="{DynamicResource DispatcherInk}" Margin="0,0,0,5" />
+                    <TextBlock x:Name="MessageText" Text="{Binding Text}" Foreground="{DynamicResource DispatcherInk}" TextWrapping="Wrap" FontSize="15" LineHeight="22" />
                 </StackPanel></Border>
                 <TextBlock x:Name="SystemUpdate" Text="{Binding Text}" Visibility="Collapsed" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Caption}" Margin="8,5" AutomationProperties.Name="{Binding Text}" />
             </Grid>
             <DataTemplate.Triggers><DataTrigger Binding="{Binding IsSystem}" Value="True">
                 <Setter TargetName="Bubble" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="SystemUpdate" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsPilot}" Value="True">
+                <Setter TargetName="Bubble" Property="Background" Value="{DynamicResource PilotBubble}" />
+                <Setter TargetName="Bubble" Property="Margin" Value="20,0,0,0" />
+                <Setter TargetName="Bubble" Property="CornerRadius" Value="18,18,4,18" />
+                <Setter TargetName="SenderText" Property="Foreground" Value="{DynamicResource PilotInk}" />
+                <Setter TargetName="MessageText" Property="Foreground" Value="{DynamicResource PilotInk}" />
             </DataTrigger></DataTemplate.Triggers>
         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
             <Border Style="{StaticResource Card}" Visibility="{Binding HasRecovery, Converter={StaticResource VisibleIf}}"><StackPanel>
                 <TextBlock Text="{Binding RecoveryTitle}" Style="{StaticResource CardTitle}" />
                 <TextBlock Text="{Binding RecoveryDetail}" TextWrapping="Wrap" Margin="0,0,0,12" />
                 <Button Content="{Binding RecoveryButton}" Command="{Binding RecoveryCommand}" HorizontalAlignment="Left" AutomationProperties.Name="{Binding RecoveryButton}" />
-                <Button Content="Open GSX" Command="{Binding OpenGsxCommand}" Style="{StaticResource QuietButton}" HorizontalAlignment="Left" Margin="0,8,0,0" Visibility="{Binding HasGsxShortcut, Converter={StaticResource VisibleIf}}" />
             </StackPanel></Border>
         </StackPanel></ScrollViewer>
         <DockPanel Grid.Row="1" Margin="0,6,5,6"><Button DockPanel.Dock="Right" Content="Clear chat" Command="{Binding ClearChatCommand}" Visibility="{Binding HasOperation, Converter={StaticResource VisibleIf}}" Style="{StaticResource QuietButton}" AutomationProperties.Name="Clear current chat" /><TextBlock Text="{Binding ChatStatus}" Style="{StaticResource Caption}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" /></DockPanel>
         <ItemsControl Grid.Row="2" ItemsSource="{Binding QuickReplies}" Margin="0,0,5,8"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
-            <Button Content="{Binding}" Command="{Binding DataContext.QuickReplyCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Style="{StaticResource QuietButton}" Margin="0,0,6,6" />
+            <Button Content="{Binding Converter={StaticResource QuickChatLabel}}" Command="{Binding DataContext.QuickReplyCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" Style="{StaticResource QuietButton}" Margin="0,0,6,6" />
         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         <Grid Grid.Row="3" Margin="0,0,5,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <TextBox x:Name="Composer" Text="{Binding Draft, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanChat}" AcceptsReturn="True" MinHeight="48" MaxHeight="120" PreviewKeyDown="ComposerKeyDown" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Message the live dispatcher" />

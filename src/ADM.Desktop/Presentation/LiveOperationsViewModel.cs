@@ -17,6 +17,9 @@ namespace ADM.Desktop.Presentation;
 /// <summary>Explicit live-operation controls. The demonstration remains isolated and never dispatches here.</summary>
 public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
 {
+    private readonly ChatDeliveryQueue _delivery;
+    private readonly System.Windows.Threading.DispatcherTimer? _deliveryTimer;
+    private int _queuedMessages;
     private readonly IOperationalClock _clock;
     private readonly IServicePlanResolver _resolver;
     private readonly IAirlineIdentityResolver _identity;
@@ -37,7 +40,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     private bool _reviewingRecovery;
     private bool _showManualEntry;
     private RecoveryStep _recovery = RecoveryStep.None;
-    private readonly IGsxHelpLauncher? _gsxHelp;
     private readonly IInstallationRepair? _installationRepair;
     public event Action<string>? RepairRequested;
     public event Action<string, string, FlightOperationType>? FlightProfileChanged;
@@ -67,19 +69,22 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     private bool _messagesInitialized;
     private bool _prepareWhenReady;
     public event Action? ImportantMessage;
+    public event Action? MessageSent;
     public LiveOperationsViewModel(IOperationalClock clock, IServicePlanResolver resolver, IAirlineIdentityResolver identity,
         IAirlineProfileRepository profiles, IDispatchStore store, IFlightPlanCache cache, IFlightPlanImporter importer,
         IConversationEngine conversation, PersonaCatalogue personas, JsonAircraftCapabilityCatalog capabilities, ILogger<LiveOperationsViewModel>? logger = null,
-        IOperationalRealismEngine? realismEngine = null, IAirportGateProfiles? gateProfiles = null, IAssistantSetupStore? setupStore = null, IGsxHelpLauncher? gsxHelp = null, IInstallationRepair? installationRepair = null)
+        IOperationalRealismEngine? realismEngine = null, IAirportGateProfiles? gateProfiles = null, IAssistantSetupStore? setupStore = null, IInstallationRepair? installationRepair = null, ChatTimingOptions? chatTiming = null)
     {
-        _gsxHelp = gsxHelp; _installationRepair = installationRepair;
+        _installationRepair = installationRepair;
+        var timing = chatTiming ?? new(false); _delivery = new(timing.NextDelay);
+        if (timing.Enabled && System.Windows.Application.Current is { } application)
+            _deliveryTimer = new(TimeSpan.FromMilliseconds(100), System.Windows.Threading.DispatcherPriority.Background, (_, _) => FlushChat(), application.Dispatcher);
         _clock = clock; _resolver = resolver; _identity = identity; _profiles = profiles; _store = store; _cache = cache;
         _importer = importer; _conversation = conversation; _personas = personas; _capabilities = capabilities;
         _logger = logger;
         _realismEngine = realismEngine; _gateProfiles = gateProfiles;
         _setupStore = setupStore ?? new MemoryAssistantSetupStore(); _setup = _setupStore.Load();
         RecoveryCommand = Command(RecoverAsync, () => _recovery.Action != RecoveryAction.None && !NeedsSetup);
-        OpenGsxCommand = Command(() => { _gsxHelp?.Open(); return Task.CompletedTask; });
         ImportCommand = Command(ImportAsync);
         CachedCommand = Command(async () => StageFlight(await _cache.LoadAsync(CancellationToken.None) ?? throw new InvalidOperationException("No cached flight is available.")));
         ManualCommand = Command(async () =>
@@ -94,7 +99,14 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         ReconcileCommand = Command(async () => { await Required().ReconcileAsync(Simulator(), ReviewedCurrentServices, CancellationToken.None); Refresh(); }, () => _coordinator?.Checkpoint is not null);
         GateCommand = Command(async () => { await Required().ConfirmGateAsync(Simulator(), CancellationToken.None); Refresh(); }, () => _coordinator?.Checkpoint is not null);
         SendCommand = Command(async () => { await SendMessageAsync(Draft); Draft = ""; Refresh(); }, () => CanChat && !string.IsNullOrWhiteSpace(Draft));
-        QuickReplyCommand = new(value => { Draft = value as string ?? ""; SendCommand.Execute(null); }, _ => CanChat);
+        QuickReplyCommand = new(value =>
+        {
+            string command = value as string ?? "";
+            if (_coordinator?.Checkpoint is { } checkpoint)
+                command = QuickChat.Message(command, new(checkpoint.State.Session, checkpoint.State.Connection, checkpoint.State.Question, checkpoint.State.FocusService),
+                    checkpoint.Messages.Count(message => message.Sender == "You"));
+            Draft = command; SendCommand.Execute(null);
+        }, _ => CanChat);
         EndCommand = Command(async () => { await Required().EndAsync(CancellationToken.None); await StopAsync(); await CreateCoordinatorAsync(); ClearFlight(); if (_automatic) await ConnectAsync(); Refresh(); }, () => _coordinator?.Checkpoint is not null);
         ClearChatCommand = Command(async () => { await Required().ClearChatAsync(CancellationToken.None); Refresh(); }, () => HasOperation);
         PrepareNextCommand = Command(PrepareNextAsync, () => _nextFlight is not null && NextSectorConfirmed);
@@ -119,13 +131,11 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         });
     }
     public AsyncRelayCommand RecoveryCommand { get; }
-    public AsyncRelayCommand OpenGsxCommand { get; }
     public bool ShowManualEntry { get => _showManualEntry; set => Set(ref _showManualEntry, value); }
     public bool HasRecovery => _recovery.Action != RecoveryAction.None;
     public string RecoveryTitle => _recovery.Title;
     public string RecoveryDetail => _reviewingRecovery && _recovery.Action == RecoveryAction.Resume ? "Check that the current aircraft and GSX services belong to this flight. The button below confirms that review; it doesn't replay uncertain requests." : _recovery.Detail;
     public string RecoveryButton => _reviewingRecovery && _recovery.Action == RecoveryAction.Resume ? "States checked — resume" : _recovery.Button;
-    public bool HasGsxShortcut => _recovery.Action is RecoveryAction.Resume or RecoveryAction.RestartService or RecoveryAction.EnterFlight;
     public SupportReport SupportSnapshot() => new(typeof(LiveOperationsViewModel).Assembly.GetName().Version?.ToString() ?? "unknown", _clock.UtcNow,
         _simulator?.Connection.ToString() ?? "Offline", _gateway?.Connection.ToString() ?? "Offline", StageLabel,
         _gateway?.Snapshot.MenuOpen == true, _gateway?.Snapshot.AwaitingInput == true, _recovery.Action.ToString(),
@@ -140,7 +150,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
                 await StopAsync(); await CreateCoordinatorAsync(); await ConnectAsync(); break;
             case RecoveryAction.EnterFlight:
                 ShowManualEntry = true; FlightEntryRequested?.Invoke(); break;
-            case RecoveryAction.OpenGsx: _gsxHelp?.Open(); break;
+            case RecoveryAction.Recheck: await Required().ObserveAsync(Simulator(), CancellationToken.None); break;
             case RecoveryAction.Resume:
                 if (!_reviewingRecovery) { _reviewingRecovery = true; return; }
                 await Required().ReconcileAsync(Simulator(), true, CancellationToken.None); _reviewingRecovery = false; break;
@@ -543,14 +553,13 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
                     _ => "Planned"
                 }));
             if (_visibleSession != checkpoint.State.Session.Id || _visibleOffset != checkpoint.VisibleMessageOffset)
-            { Messages.Clear(); _visibleSession = checkpoint.State.Session.Id; _visibleOffset = checkpoint.VisibleMessageOffset; _messagesInitialized = false; }
-            bool notify = false;
-            while (Messages.Count + _visibleOffset < checkpoint.Messages.Length)
+            { Messages.Clear(); _delivery.Clear(); _queuedMessages = 0; _visibleSession = checkpoint.State.Session.Id; _visibleOffset = checkpoint.VisibleMessageOffset; _messagesInitialized = false; }
+            while (_queuedMessages + _visibleOffset < checkpoint.Messages.Length)
             {
-                var message = checkpoint.Messages[Messages.Count + _visibleOffset]; Messages.Add(new(message.Sender, message.Text, message.SentAt, message.Sender == "You") { IsSystem = message.IsSystem });
-                if (ConversationPresentation.ShouldNotify(message)) notify = true;
+                var message = checkpoint.Messages[_queuedMessages++ + _visibleOffset];
+                _delivery.Enqueue(message, DateTimeOffset.UtcNow, _messagesInitialized);
             }
-            if (_messagesInitialized && notify) ImportantMessage?.Invoke();
+            FlushChat();
             _messagesInitialized = true;
             var context = new OperationalContext(checkpoint.State.Session, checkpoint.State.Connection, checkpoint.State.Question);
             var restartable = checkpoint.State.Session.Services.Values.FirstOrDefault(service => service.Kind != ServiceKind.Deboarding && service.State == ServiceState.Unknown && _gateway?.Snapshot.Services.GetValueOrDefault(service.Kind)?.CanTrigger == true);
@@ -558,23 +567,20 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
                 _automatic && !_coordinator.IsArmed && checkpoint.State.Session.Stage != WorkflowStage.Completed ? new[] { "Resume handling" } :
                 checkpoint.State.Connection == ConnectionState.Connected ? LocalConversationEngine.QuickReplies(context).ToArray() : ["What's the delay?"];
             if (_nextFlight is not null && checkpoint.State.Session.Stage == WorkflowStage.Completed) replies = ["Start next sector", .. replies];
+            if (_delivery.HasPendingDispatcher) replies = [];
             if (!QuickReplies.SequenceEqual(replies)) { QuickReplies.Clear(); foreach (var reply in replies) QuickReplies.Add(reply); }
             ReleaseStatus.Clear();
-            if (checkpoint.State.Session.Stage is WorkflowStage.ClosingAndReleasing or WorkflowStage.Completed)
-                foreach (var (action, release) in checkpoint.State.Releases.OrderBy(pair => pair.Key))
-                    ReleaseStatus.Add((action switch { ReleaseAction.Doors => "Doors closed", ReleaseAction.JetwayOrStairs => "Jetway / stairs clear", _ => "Ground equipment disconnected" }) +
-                        (release.IsSatisfied ? release.Provenance == CompletionProvenance.PilotAttested ? " · pilot confirmed" : " · verified" : " · manual confirmation pending"));
         }
         else
         {
-            ServiceStatus.Clear(); Messages.Clear(); QuickReplies.Clear(); ReleaseStatus.Clear(); _messagesInitialized = false;
+            ServiceStatus.Clear(); Messages.Clear(); _delivery.Clear(); _queuedMessages = 0; QuickReplies.Clear(); ReleaseStatus.Clear(); _messagesInitialized = false;
             if (_nextFlight is not null) QuickReplies.Add("Start next sector");
             if (_flight is not null && _coordinator?.Duty is { DepartureObserved: true }) ClearFlight();
         }
         SectorHistory.Clear();
         if (_coordinator?.Duty is { } duty)
             foreach (var sector in duty.Sectors) SectorHistory.Add($"{sector.Number:00} · {sector.Flight.Callsign} · {sector.Flight.Origin} → {sector.Flight.Destination} · {sector.Airline} r{sector.ProfileRevision} · {sector.Dispatcher.Persona.Name} · {(sector.HandlingCompleted ? "Handling completed" : sector.Archived ? "Archived incomplete" : "Handling active")}");
-        foreach (string name in new[] { nameof(HasRecovery), nameof(RecoveryTitle), nameof(RecoveryDetail), nameof(RecoveryButton), nameof(HasGsxShortcut), nameof(ConnectionLabel), nameof(HasOperation), nameof(HandlingActive), nameof(HasWorkspace), nameof(CanChat), nameof(ChatStatus), nameof(NeedsSetup), nameof(ShowWelcome), nameof(WelcomeMessage), nameof(LoadLabel), nameof(DutyLabel), nameof(ArrivalLabel), nameof(NextFlightLabel), nameof(FlightLabel), nameof(ProfileLabel), nameof(Compatibility), nameof(ServiceDetails), nameof(RealismDetails) }) Raise(name);
+        foreach (string name in new[] { nameof(HasRecovery), nameof(RecoveryTitle), nameof(RecoveryDetail), nameof(RecoveryButton), nameof(ConnectionLabel), nameof(HasOperation), nameof(HandlingActive), nameof(HasWorkspace), nameof(CanChat), nameof(ChatStatus), nameof(NeedsSetup), nameof(ShowWelcome), nameof(WelcomeMessage), nameof(LoadLabel), nameof(DutyLabel), nameof(ArrivalLabel), nameof(NextFlightLabel), nameof(FlightLabel), nameof(ProfileLabel), nameof(Compatibility), nameof(ServiceDetails), nameof(RealismDetails) }) Raise(name);
         foreach (var command in new[] { StartCommand, ReconcileCommand, GateCommand, SendCommand, EndCommand, ClearChatCommand, PrepareNextCommand, EndDutyCommand, CompleteSetupCommand, RecoveryCommand }) command.Refresh();
         QuickReplyCommand.Refresh();
         if (_automatic && AutoConnect && !_connected && (_worker is null || _worker.IsCompleted) && _clock.UtcNow - _lastConnectionAttempt > TimeSpan.FromSeconds(10) && ConnectCommand.CanExecute(null)) ConnectCommand.Execute(null);
@@ -597,5 +603,19 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         if (_gateway is not null) await _gateway.DisposeAsync().ConfigureAwait(false);
         _stop?.Dispose(); _stop = null; _worker = null; _connected = false; _prepareWhenReady = false;
     }
-    public void Dispose() { _refreshTimer?.Stop(); StopAsync().GetAwaiter().GetResult(); }
+    private void FlushChat()
+    {
+        bool wasPending = _delivery.HasPendingDispatcher;
+        bool incoming = false;
+        foreach (var delivered in _delivery.Drain(DateTimeOffset.UtcNow, message => ChatDeliveryQueue.IsRelevant(message, _coordinator?.Checkpoint?.State.Question)))
+        {
+            var message = delivered.Message;
+            Messages.Add(new(message.Sender, message.Text, message.SentAt, message.Sender == "You") { IsSystem = message.IsSystem });
+            if (delivered.Notify && message.Sender == "You") MessageSent?.Invoke();
+            if (delivered.Notify && ConversationPresentation.ShouldNotify(message)) incoming = true;
+        }
+        if (incoming) ImportantMessage?.Invoke();
+        if (wasPending && !_delivery.HasPendingDispatcher && _deliveryTimer is not null) Refresh();
+    }
+    public void Dispose() { _deliveryTimer?.Stop(); _delivery.Clear(); _refreshTimer?.Stop(); StopAsync().GetAwaiter().GetResult(); }
 }

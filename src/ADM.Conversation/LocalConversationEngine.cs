@@ -12,13 +12,20 @@ public sealed class LocalConversationEngine(PersonaCatalogue catalogue) : IConve
     public ConversationDecision Evaluate(OperationalContext context, DomainEvent domainEvent)
     {
         string key = domainEvent.Name.Split(':')[0];
+        if (key == "services.start.gsx" && domainEvent.Detail?.Contains("planned load figures", StringComparison.Ordinal) == true) key = "services.start.gsx-load";
         var persona = catalogue.Get(context.Session.Dispatcher.Persona.Id);
         string? message = domainEvent.Detail;
-        if (persona.Templates.TryGetValue(key, out var variants))
+        var variants = persona.Templates.TryGetValue(key, out var configured) ? configured :
+            ChatPhrases.For(key, context).Select(text => new PhraseVariant(text, 1)).ToImmutableArray();
+        if (!variants.IsDefaultOrEmpty)
         {
             var recent = context.RecentMessages.IsDefault ? ImmutableArray<string>.Empty : context.RecentMessages;
-            var available = variants.Where(variant => !recent.TakeLast(3).Contains(variant.Text)).ToArray();
-            if (available.Length == 0) available = variants.ToArray();
+            var available = variants.Where(variant => !recent.TakeLast(8).Contains(variant.Text)).ToArray();
+            if (available.Length == 0)
+            {
+                int oldest = variants.Min(variant => recent.LastIndexOf(variant.Text));
+                available = variants.Where(variant => recent.LastIndexOf(variant.Text) == oldest).ToArray();
+            }
             byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes($"{context.Session.Id}/{persona.Id}/{domainEvent.Name}"));
             int pick = (int)(System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(hash) % available.Sum(variant => variant.Weight));
             foreach (var variant in available)
@@ -32,9 +39,10 @@ public sealed class LocalConversationEngine(PersonaCatalogue catalogue) : IConve
 
     public static ImmutableArray<string> QuickReplies(OperationalContext context) => context.Question?.Kind switch
     {
+        _ when context.Session.Stage == WorkflowStage.Completed => [],
         QuestionKind.ServicesStart => ["Yes, start services", "Not yet"],
         QuestionKind.Boarding => ["Yes, start boarding", "Hold boarding"],
-        QuestionKind.Closure => ["Yes, close up", "Keep connected"],
+        QuestionKind.Closure => ["Yes, close up", "Not yet"],
         QuestionKind.Service => ["Yes", $"Skip {context.Question.Service!.Value.ToString().ToLowerInvariant()}"],
         QuestionKind.MandatorySkip => ["Confirm skip", "Are we ready?"],
         QuestionKind.GateCheck => ["Gate checked"],

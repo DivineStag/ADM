@@ -51,7 +51,7 @@ public partial class App : System.Windows.Application
                 typeof(App).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
                     .Cast<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion.Split('+')[0]));
             builder.Services.AddSingleton<ISupportReportExporter, SupportReportExporter>();
-            builder.Services.AddSingleton<IGsxHelpLauncher, GsxHelpLauncher>();
+            builder.Services.AddSingleton(new ChatTimingOptions(!_testMode));
             builder.Services.AddSingleton<IInstallationRepair>(_ => _testMode ? new VerificationInstallationRepair() : new InstallationRepair());
             string dataDirectory = _testMode ? Path.Combine(Environment.CurrentDirectory, "artifacts", "ui", "isolated", Guid.NewGuid().ToString("N")) :
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ADM");

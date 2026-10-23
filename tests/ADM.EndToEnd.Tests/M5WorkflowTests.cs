@@ -112,7 +112,7 @@ public sealed class M5WorkflowTests
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
     [Fact]
-    public async Task Boarding_and_closure_require_separate_approvals_and_each_manual_release_before_handover()
+    public async Task Boarding_and_signoff_require_separate_approvals_without_physical_release_actions()
     {
         string directory = DirectoryPath();
         try
@@ -121,7 +121,7 @@ public sealed class M5WorkflowTests
             var provider = new ScriptedLiveProvider(); var coordinator = Coordinator(provider, store);
             await Start(coordinator); await FinishPreboarding(coordinator, provider);
             Assert.DoesNotContain(provider.Sent, command => command.Kind == ServiceKind.Boarding);
-            await coordinator.SendAsync("Close up and disconnect", Simulator, CancellationToken.None);
+            await coordinator.SendAsync("Please close the doors", Simulator, CancellationToken.None);
             Assert.Empty(coordinator.Checkpoint!.State.Session.Approvals.Where(approval => approval.Kind == ApprovalKind.Closure));
             await coordinator.SendAsync("Start boarding", Simulator, CancellationToken.None);
             provider.Set(ServiceKind.Boarding, ServiceState.Active); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
@@ -130,20 +130,12 @@ public sealed class M5WorkflowTests
             provider.Set(ServiceKind.Boarding, ServiceState.Completed); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
             Assert.Equal(WorkflowStage.AwaitingClosureApproval, coordinator.Checkpoint.State.Session.Stage);
             Assert.All(coordinator.Checkpoint.State.Releases.Values, release => Assert.False(release.IsSatisfied));
-            await coordinator.SendAsync("Close up and disconnect", Simulator, CancellationToken.None);
-            foreach (var action in Enum.GetValues<ReleaseAction>())
-            {
-                Assert.Equal(WorkflowStage.ClosingAndReleasing, coordinator.Checkpoint.State.Session.Stage);
-                Assert.Equal(action, coordinator.Checkpoint.State.Question?.Release);
-                if (action != ReleaseAction.Doors)
-                {
-                    await coordinator.SendAsync("Confirm doors closed", Simulator, CancellationToken.None);
-                    Assert.False(coordinator.Checkpoint.State.Releases[action].IsSatisfied);
-                }
-                await coordinator.SendAsync("Confirm clear", Simulator, CancellationToken.None);
-            }
+            await coordinator.SendAsync("Please close the doors", Simulator, CancellationToken.None);
             Assert.Equal(WorkflowStage.Completed, coordinator.Checkpoint.State.Session.Stage);
-            Assert.All(coordinator.Checkpoint.State.Releases.Values, release => Assert.Equal(CompletionProvenance.PilotAttested, release.Provenance));
+            Assert.All(coordinator.Checkpoint.State.Releases.Values, release => Assert.False(release.IsSatisfied));
+            Assert.Null(coordinator.Checkpoint.State.Question);
+            Assert.DoesNotContain(coordinator.Checkpoint.State.Commands, command => command.Kind == OperationalCommandKind.ReleaseEquipment);
+            Assert.Contains(coordinator.Checkpoint.Messages, message => message.Text.Contains("safe flight", StringComparison.OrdinalIgnoreCase));
             int sent = provider.Sent.Count;
             await coordinator.ObserveAsync(Simulator with { EnginesRunning = true, ParkingBrakeSet = false, OnGround = false }, CancellationToken.None);
             await coordinator.SendAsync("Are we ready?", Simulator, CancellationToken.None);
@@ -153,7 +145,7 @@ public sealed class M5WorkflowTests
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
     [Fact]
-    public async Task Restart_during_release_preserves_boarding_history_but_requires_fresh_closure_and_checks()
+    public async Task Restart_before_signoff_preserves_boarding_history_and_requires_a_fresh_go_ahead()
     {
         string directory = DirectoryPath(); string path = Path.Combine(directory, "dispatch.db");
         try
@@ -165,8 +157,6 @@ public sealed class M5WorkflowTests
                 await Start(coordinator); await FinishPreboarding(coordinator, provider);
                 await coordinator.SendAsync("Start boarding", Simulator, CancellationToken.None);
                 provider.Set(ServiceKind.Boarding, ServiceState.Completed); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
-                await coordinator.SendAsync("Close up", Simulator, CancellationToken.None);
-                await coordinator.SendAsync("Confirm doors closed", Simulator, CancellationToken.None);
             }
             int sent = provider.Sent.Count;
             using var reopened = new SqliteDispatchStore(path);
@@ -177,14 +167,13 @@ public sealed class M5WorkflowTests
             await restored.SendAsync("Confirm doors closed", Simulator, CancellationToken.None);
             Assert.False(restored.Checkpoint.State.Releases[ReleaseAction.Doors].IsSatisfied);
             await restored.SendAsync("Close up", Simulator, CancellationToken.None);
-            foreach (var action in Enum.GetValues<ReleaseAction>()) await restored.SendAsync("Confirm clear", Simulator, CancellationToken.None);
             Assert.Equal(WorkflowStage.Completed, restored.Checkpoint.State.Session.Stage);
             Assert.Equal(sent, provider.Sent.Count);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
     }
     [Fact]
-    public async Task Disconnect_during_closure_invalidates_approval_and_cannot_clear_equipment_from_stale_yes()
+    public async Task Disconnect_after_signoff_does_not_reopen_handling_or_invent_equipment_completion()
     {
         string directory = DirectoryPath();
         try
@@ -196,11 +185,11 @@ public sealed class M5WorkflowTests
             provider.Set(ServiceKind.Boarding, ServiceState.Completed); await coordinator.ObserveAsync(Simulator, CancellationToken.None);
             await coordinator.SendAsync("Close up", Simulator, CancellationToken.None);
             await coordinator.SendAsync("Confirm doors closed", Simulator, CancellationToken.None);
-            Assert.True(coordinator.Checkpoint!.State.Releases[ReleaseAction.Doors].IsSatisfied);
+            Assert.All(coordinator.Checkpoint!.State.Releases.Values, release => Assert.False(release.IsSatisfied));
             await coordinator.ObserveAsync(Simulator with { Connection = ConnectionState.Offline }, CancellationToken.None);
             await coordinator.SendAsync("Confirm clear", Simulator, CancellationToken.None);
             Assert.All(coordinator.Checkpoint!.State.Releases.Values, release => Assert.False(release.IsSatisfied));
-            Assert.NotEqual(WorkflowStage.Completed, coordinator.Checkpoint.State.Session.Stage);
+            Assert.Equal(WorkflowStage.Completed, coordinator.Checkpoint.State.Session.Stage);
             Assert.False(coordinator.IsArmed);
         }
         finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }

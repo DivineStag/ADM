@@ -15,6 +15,14 @@
           {
             "text": "Hello! I'll coordinate the ground services and ask before we board or disconnect.",
             "weight": 1
+          },
+          {
+            "text": "Hello! I'll look after the ground handling. Just message me if you need anything.",
+            "weight": 1
+          },
+          {
+            "text": "Hi there. I'll keep an eye on the services and check with you before boarding and closing up.",
+            "weight": 1
           }
         ],
         "boarding.approval": [
@@ -24,6 +32,14 @@
           },
           {
             "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling's finished and the preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done and we're ready at the gate. Happy to start boarding?",
             "weight": 1
           }
         ],
@@ -35,15 +51,31 @@
           {
             "text": "We're ready for boarding this end. Shall I get everyone on?",
             "weight": 1
+          },
+          {
+            "text": "Preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Everything required before boarding is ready. Happy for me to get boarding started?",
+            "weight": 1
           }
         ],
         "closure.approval": [
           {
-            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "text": "That's everyone on board. Are you happy for me to close the doors?",
             "weight": 1
           },
           {
-            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "text": "Boarding's finished. Happy for me to close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "Everyone's aboard. Shall we close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "That's boarding complete. Shall I close the doors?",
             "weight": 1
           }
         ],
@@ -55,6 +87,14 @@
           {
             "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
             "weight": 1
+          },
+          {
+            "text": "Doors are closed and the equipment's confirmed clear. You're all set this end; pushback's yours.",
+            "weight": 1
+          },
+          {
+            "text": "That's us finished. Doors and equipment are verified clear. Over to you for pushback; have a good flight!",
+            "weight": 1
           }
         ],
         "handover.attested": [
@@ -64,6 +104,14 @@
           },
           {
             "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Thanks for confirming the doors and equipment are clear. That's handling finished; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Your manual checks are recorded. We're finished this end. Over to you for pushback.",
             "weight": 1
           }
         ],
@@ -75,6 +123,14 @@
           {
             "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
             "weight": 1
+          },
+          {
+            "text": "That's the demo finished, with simulated doors and equipment clear. Pushback remains yours.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated handling is complete. Doors and equipment are clear in the demo; pushback stays with you.",
+            "weight": 1
           }
         ],
         "arrival.complete": [
@@ -84,6 +140,14 @@
           },
           {
             "text": "The arrival services are finished this end.",
+            "weight": 1
+          },
+          {
+            "text": "That's the arrival handling finished. Thanks!",
+            "weight": 1
+          },
+          {
+            "text": "All arrival services are complete. Speak soon.",
             "weight": 1
           }
         ],
@@ -95,6 +159,14 @@
           {
             "text": "Ground services are starting now. I will check with you before we board.",
             "weight": 1
+          },
+          {
+            "text": "Right, services are starting. I'll let you know when we're ready to board.",
+            "weight": 1
+          },
+          {
+            "text": "Services are getting started. I'll keep an eye on them and check with you before boarding.",
+            "weight": 1
           }
         ],
         "disruption.gate-documents": [
@@ -104,6 +176,14 @@
           },
           {
             "text": "Simulated gate-document query. I will keep services moving while boarding waits.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: a document check at the gate is holding boarding for now.",
+            "weight": 1
+          },
+          {
+            "text": "The gate has a document query in this simulated delay. Boarding will wait while services continue.",
             "weight": 1
           }
         ],
@@ -115,6 +195,14 @@
           {
             "text": "Simulated delay at passenger processing. The ground services can continue.",
             "weight": 1
+          },
+          {
+            "text": "Simulated delay: passenger processing needs more time, so boarding will wait.",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is on hold for passenger processing in this simulated delay. Services can continue.",
+            "weight": 1
           }
         ],
         "disruption.gate-staff": [
@@ -124,6 +212,14 @@
           },
           {
             "text": "Simulated gate-team hold. We can carry on with the ground services meanwhile.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: we're waiting for the gate team before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "The gate team needs a little longer in this simulated delay. Other services can continue.",
             "weight": 1
           }
         ],
@@ -135,6 +231,14 @@
           {
             "text": "Simulated hold cleared. We can move on once the remaining checks are ready.",
             "weight": 1
+          },
+          {
+            "text": "That simulated delay has cleared. We'll continue as the remaining checks allow.",
+            "weight": 1
+          },
+          {
+            "text": "The simulated hold is over. I'll keep things moving as we're ready.",
+            "weight": 1
           }
         ],
         "services.start.approval": [
@@ -144,6 +248,96 @@
           },
           {
             "text": "Happy for me to get the ground services started?",
+            "weight": 1
+          },
+          {
+            "text": "Shall I get the ground services going?",
+            "weight": 1
+          },
+          {
+            "text": "Ready for me to start the ground services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx": [
+          {
+            "text": "I've received the flight plan from GSX. Shall I get the services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan received from GSX. Ready for me to start the ground services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan's come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx-load": [
+          {
+            "text": "I've received the flight plan and planned load figures from GSX. Shall I get services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan and planned load figures received from GSX. Ready for me to start the services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan and planned load figures. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan and planned load figures have come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate": [
+          {
+            "text": "Fuel's complete. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling and the preboarding services are finished. Ready at the gate for boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done. Happy for me to start boarding, with the gate ready your end?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate-no-fuel": [
+          {
+            "text": "The preboarding services are sorted. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Preboarding services are finished. Happy to start boarding, with the gate ready your end?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready to move on from preboarding services. Ready at the gate for boarding?",
+            "weight": 1
+          }
+        ],
+        "handover.signoff": [
+          {
+            "text": "Have a safe flight! That's my part done. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "That's me finished for this stop. Have a safe flight!",
+            "weight": 1
+          },
+          {
+            "text": "All done from ADM. Safe flight, and speak soon!",
+            "weight": 1
+          },
+          {
+            "text": "Have a safe flight! I'll leave pushback with you.",
             "weight": 1
           }
         ]
@@ -163,6 +357,14 @@
           {
             "text": "Hello! I'll take care of things on the ground and check with you before boarding.",
             "weight": 1
+          },
+          {
+            "text": "Hello! I'll look after the ground handling. Just message me if you need anything.",
+            "weight": 1
+          },
+          {
+            "text": "Hi there. I'll keep an eye on the services and check with you before boarding and closing up.",
+            "weight": 1
           }
         ],
         "boarding.approval": [
@@ -172,6 +374,14 @@
           },
           {
             "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling's finished and the preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done and we're ready at the gate. Happy to start boarding?",
             "weight": 1
           }
         ],
@@ -183,15 +393,31 @@
           {
             "text": "We're ready for boarding this end. Shall I get everyone on?",
             "weight": 1
+          },
+          {
+            "text": "Preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Everything required before boarding is ready. Happy for me to get boarding started?",
+            "weight": 1
           }
         ],
         "closure.approval": [
           {
-            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "text": "That's everyone on board. Are you happy for me to close the doors?",
             "weight": 1
           },
           {
-            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "text": "Boarding's finished. Happy for me to close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "Everyone's aboard. Shall we close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "That's boarding complete. Shall I close the doors?",
             "weight": 1
           }
         ],
@@ -203,6 +429,14 @@
           {
             "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
             "weight": 1
+          },
+          {
+            "text": "Doors are closed and the equipment's confirmed clear. You're all set this end; pushback's yours.",
+            "weight": 1
+          },
+          {
+            "text": "That's us finished. Doors and equipment are verified clear. Over to you for pushback; have a good flight!",
+            "weight": 1
           }
         ],
         "handover.attested": [
@@ -212,6 +446,14 @@
           },
           {
             "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Thanks for confirming the doors and equipment are clear. That's handling finished; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Your manual checks are recorded. We're finished this end. Over to you for pushback.",
             "weight": 1
           }
         ],
@@ -223,6 +465,14 @@
           {
             "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
             "weight": 1
+          },
+          {
+            "text": "That's the demo finished, with simulated doors and equipment clear. Pushback remains yours.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated handling is complete. Doors and equipment are clear in the demo; pushback stays with you.",
+            "weight": 1
           }
         ],
         "arrival.complete": [
@@ -232,6 +482,14 @@
           },
           {
             "text": "The arrival services are finished this end.",
+            "weight": 1
+          },
+          {
+            "text": "That's the arrival handling finished. Thanks!",
+            "weight": 1
+          },
+          {
+            "text": "All arrival services are complete. Speak soon.",
             "weight": 1
           }
         ],
@@ -243,6 +501,14 @@
           {
             "text": "Ground services are on their way. I will ask before boarding.",
             "weight": 1
+          },
+          {
+            "text": "Right, services are starting. I'll let you know when we're ready to board.",
+            "weight": 1
+          },
+          {
+            "text": "Services are getting started. I'll keep an eye on them and check with you before boarding.",
+            "weight": 1
           }
         ],
         "disruption.gate-documents": [
@@ -252,6 +518,14 @@
           },
           {
             "text": "Simulated gate-document query. I will keep the services moving while boarding waits.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: a document check at the gate is holding boarding for now.",
+            "weight": 1
+          },
+          {
+            "text": "The gate has a document query in this simulated delay. Boarding will wait while services continue.",
             "weight": 1
           }
         ],
@@ -263,6 +537,14 @@
           {
             "text": "Simulated delay at passenger processing. I will keep boarding on hold for now.",
             "weight": 1
+          },
+          {
+            "text": "Simulated delay: passenger processing needs more time, so boarding will wait.",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is on hold for passenger processing in this simulated delay. Services can continue.",
+            "weight": 1
           }
         ],
         "disruption.gate-staff": [
@@ -272,6 +554,14 @@
           },
           {
             "text": "Simulated gate-team hold. The ground services can carry on.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: we're waiting for the gate team before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "The gate team needs a little longer in this simulated delay. Other services can continue.",
             "weight": 1
           }
         ],
@@ -283,6 +573,14 @@
           {
             "text": "Simulated delay cleared. We can continue once the other checks are ready.",
             "weight": 1
+          },
+          {
+            "text": "That simulated delay has cleared. We'll continue as the remaining checks allow.",
+            "weight": 1
+          },
+          {
+            "text": "The simulated hold is over. I'll keep things moving as we're ready.",
+            "weight": 1
           }
         ],
         "services.start.approval": [
@@ -292,6 +590,96 @@
           },
           {
             "text": "Ready for me to get the services going?",
+            "weight": 1
+          },
+          {
+            "text": "Shall I get the ground services going?",
+            "weight": 1
+          },
+          {
+            "text": "Ready for me to start the ground services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx": [
+          {
+            "text": "I've received the flight plan from GSX. Shall I get the services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan received from GSX. Ready for me to start the ground services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan's come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx-load": [
+          {
+            "text": "I've received the flight plan and planned load figures from GSX. Shall I get services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan and planned load figures received from GSX. Ready for me to start the services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan and planned load figures. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan and planned load figures have come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate": [
+          {
+            "text": "Fuel's complete. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling and the preboarding services are finished. Ready at the gate for boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done. Happy for me to start boarding, with the gate ready your end?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate-no-fuel": [
+          {
+            "text": "The preboarding services are sorted. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Preboarding services are finished. Happy to start boarding, with the gate ready your end?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready to move on from preboarding services. Ready at the gate for boarding?",
+            "weight": 1
+          }
+        ],
+        "handover.signoff": [
+          {
+            "text": "Have a safe flight! That's my part done. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "That's me finished for this stop. Have a safe flight!",
+            "weight": 1
+          },
+          {
+            "text": "All done from ADM. Safe flight, and speak soon!",
+            "weight": 1
+          },
+          {
+            "text": "Have a safe flight! I'll leave pushback with you.",
             "weight": 1
           }
         ]
@@ -311,6 +699,14 @@
           {
             "text": "Good day. I will manage the ground services and request your permission before boarding and closure.",
             "weight": 1
+          },
+          {
+            "text": "Hello! I'll look after the ground handling. Just message me if you need anything.",
+            "weight": 1
+          },
+          {
+            "text": "Hi there. I'll keep an eye on the services and check with you before boarding and closing up.",
+            "weight": 1
           }
         ],
         "boarding.approval": [
@@ -320,6 +716,14 @@
           },
           {
             "text": "Fuel and the required services are complete. Shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling's finished and the preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done and we're ready at the gate. Happy to start boarding?",
             "weight": 1
           }
         ],
@@ -331,15 +735,31 @@
           {
             "text": "We're ready for boarding this end. Shall I get everyone on?",
             "weight": 1
+          },
+          {
+            "text": "Preboarding checks are complete. Shall we start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Everything required before boarding is ready. Happy for me to get boarding started?",
+            "weight": 1
           }
         ],
         "closure.approval": [
           {
-            "text": "That's everyone on board. Happy for us to close up and disconnect?",
+            "text": "That's everyone on board. Are you happy for me to close the doors?",
             "weight": 1
           },
           {
-            "text": "Boarding is complete. Shall we close up and disconnect?",
+            "text": "Boarding's finished. Happy for me to close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "Everyone's aboard. Shall we close the doors?",
+            "weight": 1
+          },
+          {
+            "text": "That's boarding complete. Shall I close the doors?",
             "weight": 1
           }
         ],
@@ -351,6 +771,14 @@
           {
             "text": "Ground handling is complete, with doors and equipment verified clear. Pushback is yours.",
             "weight": 1
+          },
+          {
+            "text": "Doors are closed and the equipment's confirmed clear. You're all set this end; pushback's yours.",
+            "weight": 1
+          },
+          {
+            "text": "That's us finished. Doors and equipment are verified clear. Over to you for pushback; have a good flight!",
+            "weight": 1
           }
         ],
         "handover.attested": [
@@ -360,6 +788,14 @@
           },
           {
             "text": "Your doors and equipment confirmations are recorded. All finished this end; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Thanks for confirming the doors and equipment are clear. That's handling finished; pushback is yours.",
+            "weight": 1
+          },
+          {
+            "text": "Your manual checks are recorded. We're finished this end. Over to you for pushback.",
             "weight": 1
           }
         ],
@@ -371,6 +807,14 @@
           {
             "text": "All sample release observations are complete. Pushback remains entirely with the pilot.",
             "weight": 1
+          },
+          {
+            "text": "That's the demo finished, with simulated doors and equipment clear. Pushback remains yours.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated handling is complete. Doors and equipment are clear in the demo; pushback stays with you.",
+            "weight": 1
           }
         ],
         "arrival.complete": [
@@ -380,6 +824,14 @@
           },
           {
             "text": "The arrival services are finished this end.",
+            "weight": 1
+          },
+          {
+            "text": "That's the arrival handling finished. Thanks!",
+            "weight": 1
+          },
+          {
+            "text": "All arrival services are complete. Speak soon.",
             "weight": 1
           }
         ],
@@ -391,6 +843,14 @@
           {
             "text": "Ground services are starting. I will check with you before boarding.",
             "weight": 1
+          },
+          {
+            "text": "Right, services are starting. I'll let you know when we're ready to board.",
+            "weight": 1
+          },
+          {
+            "text": "Services are getting started. I'll keep an eye on them and check with you before boarding.",
+            "weight": 1
           }
         ],
         "disruption.gate-documents": [
@@ -400,6 +860,14 @@
           },
           {
             "text": "Simulated gate-document query. Ground services may continue; boarding will wait.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: a document check at the gate is holding boarding for now.",
+            "weight": 1
+          },
+          {
+            "text": "The gate has a document query in this simulated delay. Boarding will wait while services continue.",
             "weight": 1
           }
         ],
@@ -411,6 +879,14 @@
           {
             "text": "Simulated delay at passenger processing. Ground services can continue.",
             "weight": 1
+          },
+          {
+            "text": "Simulated delay: passenger processing needs more time, so boarding will wait.",
+            "weight": 1
+          },
+          {
+            "text": "Boarding is on hold for passenger processing in this simulated delay. Services can continue.",
+            "weight": 1
           }
         ],
         "disruption.gate-staff": [
@@ -420,6 +896,14 @@
           },
           {
             "text": "Simulated gate-team delay. I will withhold boarding clearance until it clears.",
+            "weight": 1
+          },
+          {
+            "text": "Simulated delay: we're waiting for the gate team before boarding.",
+            "weight": 1
+          },
+          {
+            "text": "The gate team needs a little longer in this simulated delay. Other services can continue.",
             "weight": 1
           }
         ],
@@ -431,6 +915,14 @@
           {
             "text": "Simulated hold resolved. The remaining service and gate checks still apply.",
             "weight": 1
+          },
+          {
+            "text": "That simulated delay has cleared. We'll continue as the remaining checks allow.",
+            "weight": 1
+          },
+          {
+            "text": "The simulated hold is over. I'll keep things moving as we're ready.",
+            "weight": 1
           }
         ],
         "services.start.approval": [
@@ -440,6 +932,96 @@
           },
           {
             "text": "May I start the ground services?",
+            "weight": 1
+          },
+          {
+            "text": "Shall I get the ground services going?",
+            "weight": 1
+          },
+          {
+            "text": "Ready for me to start the ground services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx": [
+          {
+            "text": "I've received the flight plan from GSX. Shall I get the services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan received from GSX. Ready for me to start the ground services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan's come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "services.start.gsx-load": [
+          {
+            "text": "I've received the flight plan and planned load figures from GSX. Shall I get services started?",
+            "weight": 1
+          },
+          {
+            "text": "Flight plan and planned load figures received from GSX. Ready for me to start the services?",
+            "weight": 1
+          },
+          {
+            "text": "I've got the GSX flight plan and planned load figures. Happy for me to get services going?",
+            "weight": 1
+          },
+          {
+            "text": "The flight plan and planned load figures have come through from GSX. Shall we start services?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate": [
+          {
+            "text": "Fuel's complete. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuelling and the preboarding services are finished. Ready at the gate for boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Fuel's done. Happy for me to start boarding, with the gate ready your end?",
+            "weight": 1
+          }
+        ],
+        "boarding.approval.gate-no-fuel": [
+          {
+            "text": "The preboarding services are sorted. If you're ready at the gate, shall I start boarding?",
+            "weight": 1
+          },
+          {
+            "text": "Preboarding services are finished. Happy to start boarding, with the gate ready your end?",
+            "weight": 1
+          },
+          {
+            "text": "We're ready to move on from preboarding services. Ready at the gate for boarding?",
+            "weight": 1
+          }
+        ],
+        "handover.signoff": [
+          {
+            "text": "Have a safe flight! That's my part done. Pushback's over to you.",
+            "weight": 1
+          },
+          {
+            "text": "That's me finished for this stop. Have a safe flight!",
+            "weight": 1
+          },
+          {
+            "text": "All done from ADM. Safe flight, and speak soon!",
+            "weight": 1
+          },
+          {
+            "text": "Have a safe flight! I'll leave pushback with you.",
             "weight": 1
           }
         ]

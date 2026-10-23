@@ -16,7 +16,22 @@ public sealed class DemoPresentationTests
     private static ServiceRow Row(DemoSessionViewModel demo, ServiceKind kind) => demo.Services.Single(row => row.Kind == kind);
 
     [Fact]
-    public void Happy_path_requires_two_separate_approvals_and_observed_release()
+    public void Quick_reply_sends_natural_pilot_text_and_smalltalk_is_quiet()
+    {
+        int notifications = 0;
+        var demo = Create(() => notifications++);
+        int before = notifications;
+        demo.Send("How are you?");
+        Assert.Equal(before, notifications);
+        Assert.NotEqual("You", demo.Messages.Last().Sender);
+        demo.AdvanceCommand.Execute(null);
+        demo.QuickReplyCommand.Execute("Yes, start boarding");
+        Assert.Equal(DemoStage.Boarding, demo.Stage);
+        Assert.NotEqual("Yes, start boarding", demo.Messages.Last(message => message.IsPilot).Text);
+    }
+
+    [Fact]
+    public void Happy_path_requires_two_separate_approvals_then_signs_off_without_equipment_actions()
     {
         int notifications = 0;
         var demo = Create(() => notifications++);
@@ -35,12 +50,12 @@ public sealed class DemoPresentationTests
         demo.AdvanceCommand.Execute(null);
         Assert.Equal(DemoStage.ClosureApproval, demo.Stage);
         Assert.False(demo.AdvanceCommand.CanExecute(null));
-        demo.Send("Close up and disconnect");
-        Assert.Equal(DemoStage.Releasing, demo.Stage);
+        demo.QuickReplyCommand.Execute("Yes, close up");
+        Assert.Equal(DemoStage.Complete, demo.Stage);
         Assert.Equal(2, demo.Approvals.Count);
         demo.AdvanceCommand.Execute(null);
         Assert.Equal(DemoStage.Complete, demo.Stage);
-        Assert.Contains("pushback", demo.Messages.Last().Text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("safe flight", demo.Messages.Last().Text, StringComparison.OrdinalIgnoreCase);
         Assert.All(demo.Approvals, approval => Assert.Equal(demo.DemoId, approval.DemoId));
         Assert.Equal(3, notifications);
         Assert.Empty(demo.QuickReplies);
