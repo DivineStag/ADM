@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 param(
-    [string]$Version = '0.8.0-beta.8',
+    [string]$Version = '0.8.0-beta.9',
     [string]$Repository = 'DivineStag/ADM',
     [string]$CompilerPath = '',
     [string]$SignCommand = '',

@@ -28,7 +28,10 @@ public sealed class DemoSessionViewModel : ObservableObject, IDisposable
     {
         var timing = chatTiming ?? new(false); _delivery = new(timing.NextDelay);
         if (timing.Enabled && System.Windows.Application.Current is { } application)
+        {
             _deliveryTimer = new(TimeSpan.FromMilliseconds(100), System.Windows.Threading.DispatcherPriority.Background, (_, _) => FlushChat(), application.Dispatcher);
+            _deliveryTimer.Stop();
+        }
         _clock = clock; _notify = notify; _conversation = conversation; _personas = personas;
         NextSequence = nextSequence;
         SendCommand = new(_ => Send(Draft), _ => !string.IsNullOrWhiteSpace(Draft));
@@ -263,6 +266,7 @@ public sealed class DemoSessionViewModel : ObservableObject, IDisposable
             if (delivered.Notify && ConversationPresentation.ShouldNotify(message)) incoming = true;
         }
         if (incoming) _notify();
+        if (_delivery.HasPendingDispatcher) _deliveryTimer?.Start(); else _deliveryTimer?.Stop();
         if (wasPending && !_delivery.HasPendingDispatcher && _deliveryTimer is not null) Update();
     }
     public void Dispose() { _deliveryTimer?.Stop(); _delivery.Clear(); }

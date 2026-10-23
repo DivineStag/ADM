@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -17,4 +18,12 @@ public abstract class ObservableObject : INotifyPropertyChanged
 
     protected void Raise([CallerMemberName] string? property = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+
+    protected static void ReplaceIfChanged<T>(ObservableCollection<T> target, IEnumerable<T> values)
+    {
+        T[] next = values.ToArray();
+        if (target.SequenceEqual(next)) return;
+        target.Clear();
+        foreach (T item in next) target.Add(item);
+    }
 }

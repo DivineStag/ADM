@@ -1,12 +1,12 @@
 # M8 qualification matrix
 
-22 October 2026. A passing fixture is not live aircraft compatibility evidence. Record exact Windows, GSX, MSFS and aircraft versions for each later run.
+Updated 23 October 2026, candidate beta.9. A passing fixture is not live aircraft compatibility evidence. Record exact Windows, GSX, MSFS and aircraft versions for each later run.
 
 | Configuration / scenario | Evidence | Status |
 | --- | --- | --- |
 | Current developer Windows x64: native setup, installed startup, setup rerun, cached repair, uninstall | artifacts/m8-native-installer-results.txt, 12 checks; Start/Apps registration suppressed | Pass locally |
-| Packaged phone/tablet UI, dark/light, navigation, profiles, recovery, sound decoding | artifacts/ui/ui-results.txt, 33 checks | Pass locally |
-| All six xUnit suites; domain scheduling/approvals/recovery/persistence | artifacts/gsx-owned-readiness-tests, 363 tests | Pass offline |
+| Packaged phone/tablet UI, dark/light, navigation, profiles, recovery, sound decoding | artifacts/ui/ui-results.txt, 42 checks | Pass locally |
+| All six xUnit suites; domain scheduling/approvals/recovery/persistence | artifacts/beta9-tests-final, 442 tests | Pass offline |
 | Clean Windows without SDK or .NET, Start entry, Apps uninstall, installation repair | Not yet run; local developer machine is insufficient | Pending |
 | MSFS/GSX connected: read-only plan and aircraft match | Prior M7 follow-up live probe | Partial live evidence |
 | Fenix A319 cockpit mapping (superseded) | Historical beta.2 probe; current beta.3 delegates readiness to GSX and removes this mapping | Historical only |

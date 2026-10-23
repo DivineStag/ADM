@@ -31,13 +31,17 @@ public sealed class ChatDeliveryQueue(Func<TimeSpan> nextDelay)
     }
     public IReadOnlyList<DeliveredChatMessage> Drain(DateTimeOffset now, Func<ConversationMessage, bool>? stillRelevant = null)
     {
+        if (_pending.Count == 0) return Array.Empty<DeliveredChatMessage>();
         var result = new List<DeliveredChatMessage>();
-        foreach (var item in _pending.ToArray())
+        int retained = 0;
+        for (int index = 0; index < _pending.Count; index++)
         {
-            if (stillRelevant is not null && !stillRelevant(item.Message)) { _pending.Remove(item); continue; }
-            if (item.Due > now) continue;
-            result.Add(new(item.Message, item.Notify)); _pending.Remove(item);
+            var item = _pending[index];
+            if (stillRelevant is not null && !stillRelevant(item.Message)) continue;
+            if (item.Due > now) _pending[retained++] = item;
+            else result.Add(new(item.Message, item.Notify));
         }
+        if (retained < _pending.Count) _pending.RemoveRange(retained, _pending.Count - retained);
         return result;
     }
     public void Clear() { _pending.Clear(); _lastDispatcherDue = default; }

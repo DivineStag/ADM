@@ -1,4 +1,4 @@
-# Release checklist — current candidate beta.8
+# Release checklist — current candidate beta.9
 
 The latest readiness review is [public-release-readiness.md](public-release-readiness.md). Earlier milestone reports retain historical evidence and are superseded where the owner changed the product requirements.
 
@@ -10,6 +10,7 @@ The latest readiness review is [public-release-readiness.md](public-release-read
 - [x] Final door question is conversational: approval ends ADM without equipment commands or fabricated door-clear evidence.
 - [x] Source privacy/secret-pattern scan and NuGet direct/transitive security review.
 - [x] Owner selected freeware with source reuse rights reserved; root licence is included by setup.
+- [x] Maintenance review: GSX lock/restart regressions, bounded telemetry/logging, database compatibility checks and removal of unused desktop paths.
 - [x] Automated build/tests and local WPF/audio/delay acceptance; evidence recorded in current readiness report.
 - [x] Owner reports successful fresh-machine installation of the preceding setup.
 - [x] Owner confirmed on 23 October 2026 that the bundled SimConnect client files may be distributed with ADM; see the licensing review.

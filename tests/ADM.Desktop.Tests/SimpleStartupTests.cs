@@ -24,7 +24,7 @@ public sealed class SimpleStartupTests
             var clock = new Clock(); var resolver = new FoundationServicePlanResolver(clock); var personas = PersonaCatalogue.LoadBundled();
             using var live = new LiveOperationsViewModel(clock, resolver, new AirlineIdentityResolver(["BAW", "RYR", "UAL"]),
                 new JsonAirlineProfileRepository(Path.Combine(directory, "profiles"), bundledDirectory: Path.Combine(AppContext.BaseDirectory, "Defaults", "Profiles")),
-                store, store, new GsxOnlyFlightImporter(), new LocalConversationEngine(personas), personas, new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")));
+                store, store, new LocalConversationEngine(personas), personas, new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")));
             var shell = new MainViewModel(clock, resolver, new SilentSound(), new TransientUiPreferencesStore(), new LocalConversationEngine(personas), personas, live);
             await live.InitializeAsync(); shell.Profiles.LoadProfiles(live.SavedProfiles);
             var flight = new FlightPlanSnapshot("EZY456", "EGPH", "EGAA", new("A319", null), clock.UtcNow) { Source = FlightPlanSource.Gsx, SourceAircraftTitle = "FenixA319 CFM WF HD" };
@@ -58,7 +58,7 @@ public sealed class SimpleStartupTests
             var saved = new SavedDispatch(local.Checkpoint, sector.FlightPlan, "Fixture aircraft");
             Assert.True(await store.TryBeginSendAsync(saved, command, CancellationToken.None));
             using var vm = new LiveOperationsViewModel(clock, resolver, new AirlineIdentityResolver(["BAW"]), new JsonAirlineProfileRepository(Path.Combine(directory, "profiles")),
-                store, store, new GsxOnlyFlightImporter(), new LocalConversationEngine(personas), personas, new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")));
+                store, store, new LocalConversationEngine(personas), personas, new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")));
             await vm.InitializeAsync();
             Assert.False(vm.HasOperation); Assert.Empty(vm.Messages); Assert.Empty(vm.ServiceStatus); Assert.Empty(vm.QuickReplies); Assert.Equal("No flight loaded", vm.FlightLabel);
             Assert.Null(await store.LoadActiveAsync(CancellationToken.None));
@@ -98,9 +98,11 @@ public sealed class SimpleStartupTests
             using var store = new SqliteDispatchStore(Path.Combine(directory, "dispatch.db")); var clock = new Clock(); var personas = PersonaCatalogue.LoadBundled();
             var preferences = new MemoryAssistantSetupStore(); preferences.Save(AssistantSetup.Default with { AutoConnect = false });
             using var vm = new LiveOperationsViewModel(clock, new FoundationServicePlanResolver(clock), new AirlineIdentityResolver(["BAW", "RYR", "UAL"]),
-                new JsonAirlineProfileRepository(Path.Combine(directory, "profiles")), store, store, new GsxOnlyFlightImporter(), new LocalConversationEngine(personas), personas,
+                new JsonAirlineProfileRepository(Path.Combine(directory, "profiles")), store, store, new LocalConversationEngine(personas), personas,
                 new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")), setupStore: preferences);
             await vm.InitializeAsync(); await vm.StartAutomaticAsync();
+            Assert.Equal(ApplicationVersion.Current, vm.SupportSnapshot().AppVersion);
+            Assert.True(GitHubUpdates.Compare(vm.SupportSnapshot().AppVersion, "0.0.0") > 0);
             Assert.True(vm.HasWorkspace); Assert.True(vm.HasRecovery); Assert.Equal("Retry connection", vm.RecoveryButton); Assert.False(vm.HasOperation); Assert.False(vm.CanChat); Assert.False(vm.NeedsSetup);
             Assert.Contains("Automatic connection is off", vm.WelcomeMessage); Assert.Equal("Live connections stopped", vm.ConnectionLabel);
             Assert.Empty(vm.Messages); Assert.Empty(vm.ServiceStatus); Assert.False(vm.StartCommand.CanExecute(null));

@@ -21,13 +21,3 @@ public static class AutomaticPreparation
         return new(true, "Flight ready. I'll ask before starting services.");
     }
 }
-
-/// <summary>The desktop takes its plan from GSX; it makes no separate SimBrief HTTP request.</summary>
-public sealed class GsxOnlyFlightImporter : IFlightPlanImporter
-{
-    public Task<FlightPlanResult> ImportLatestAsync(string pilotId, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(new FlightPlanResult(null, "Load the flight plan in GSX; ADM receives it automatically."));
-    }
-}

@@ -16,7 +16,7 @@ public sealed record GsxRemoteOptions
 }
 
 /// <summary>Opt-in M3 adapter. Serializes sends; never retries a command after uncertain delivery or reconnect.</summary>
-public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposable
+public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IGsxRestartRecovery, IAsyncDisposable
 {
     private readonly Guid _sessionId;
     private readonly GsxRemoteOptions _options;
@@ -24,8 +24,12 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
     private readonly Action<string> _diagnostic;
     private readonly CancellationTokenSource _stop = new();
     private readonly SemaphoreSlim _send = new(1, 1);
+    private readonly SemaphoreSlim _commands = new(1, 1);
     private readonly object _sync = new();
-    private readonly Channel<GsxEvent> _events = Channel.CreateUnbounded<GsxEvent>();
+    // Telemetry is a latest-state feed, not the durable command journal. An idle
+    // subscriber must not retain unlimited observations over a multi-sector duty.
+    private readonly Channel<GsxEvent> _events = Channel.CreateBounded<GsxEvent>(new BoundedChannelOptions(256)
+    { FullMode = BoundedChannelFullMode.DropOldest, SingleWriter = true });
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<CommandReceipt>> _pending = new();
     private readonly Dictionary<(Guid Session, ServiceKind Kind, int Version), (ServiceCommand Command, Task<CommandReceipt> Receipt)> _intents = [];
     private readonly HashSet<ServiceKind> _uncertainServices = [];
@@ -49,6 +53,8 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
     private string? _aircraftSetupKey;
     private ImmutableDictionary<ServiceKind, RemoteServiceObservation> _observations = ImmutableDictionary<ServiceKind, RemoteServiceObservation>.Empty;
     private readonly Dictionary<ServiceKind, Evidence> _completed = [];
+    private GsxLiveSnapshot? _cachedSnapshot;
+    private TaskCompletionSource _snapshotReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
     public GsxRemoteGateway(Guid sessionId, GsxRemoteOptions? options = null, Func<IGsxSocket>? socketFactory = null, Action<string>? diagnostic = null)
     {
         if (sessionId == Guid.Empty) throw new ArgumentException("A session identity is required.", nameof(sessionId));
@@ -57,13 +63,13 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
             throw new ArgumentException("Integration timeouts must be positive.", nameof(options));
     }
     public void Start() { lock (_sync) { ObjectDisposedException.ThrowIf(_disposed != 0, this); _loop ??= Task.Run(RunAsync); } }
-    public ConnectionState Connection { get => _connection; private set => _connection = value; }
+    public ConnectionState Connection { get => _connection; private set { _connection = value; _cachedSnapshot = null; } }
     public ImmutableDictionary<ServiceKind, RemoteServiceObservation> Observations { get { lock (_sync) return _observations; } }
     public GsxLiveSnapshot Snapshot
     {
         get
         {
-            lock (_sync) return new(Connection, _generation, _receivedAt, _observations.ToImmutableDictionary(pair => pair.Key,
+            lock (_sync) return _cachedSnapshot ??= new(Connection, _generation, _receivedAt, _observations.ToImmutableDictionary(pair => pair.Key,
                 pair => new GsxServiceStatus(pair.Value.State == ServiceState.Planned && _completed.ContainsKey(pair.Key) ? ServiceState.Completed : pair.Value.State, pair.Value.CanTrigger, pair.Value.Waiting,
                     pair.Value.State == ServiceState.Planned && _completed.TryGetValue(pair.Key, out var completed) ? completed :
                     new(EvidenceSource.Gsx, $"Couatl wire-1 {pair.Value.Id}={pair.Value.SemanticState}/{pair.Value.StateRaw}", pair.Value.ObservedAt))
@@ -80,6 +86,45 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
     }
     private bool Ready => _hello && _running && _hasSnapshot && _features.Contains("state") && _features.Contains("services");
     public IAsyncEnumerable<GsxEvent> WatchAsync(CancellationToken cancellationToken) => _events.Reader.ReadAllAsync(cancellationToken);
+
+    public async Task<bool> PrepareRestartAsync(ServiceKind service, long expectedGeneration, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Task snapshot;
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed != 0, this);
+            if (Connection != ConnectionState.Connected || _generation != expectedGeneration) return false;
+            if (!_uncertainServices.Contains(service)) return RestartAvailable(service);
+            snapshot = _snapshotReceived.Task;
+        }
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stop.Token);
+        timeout.CancelAfter(_options.CommandTimeout);
+        try
+        {
+            await _send.WaitAsync(timeout.Token).ConfigureAwait(false);
+            try
+            {
+                IGsxSocket? socket;
+                lock (_sync) socket = _socket;
+                if (socket is null) return false;
+                await socket.SendAsync("{\"type\":\"command\",\"verb\":\"state.get\"}", timeout.Token).ConfigureAwait(false);
+            }
+            finally { _send.Release(); }
+            await snapshot.WaitAsync(timeout.Token).ConfigureAwait(false);
+            lock (_sync)
+            {
+                if (_generation != expectedGeneration || !RestartAvailable(service)) return false;
+                _uncertainServices.Remove(service);
+                return true;
+            }
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { return false; }
+        catch (Exception exception) when (exception is IOException or System.Net.WebSockets.WebSocketException or ObjectDisposedException) { return false; }
+    }
+
+    private bool RestartAvailable(ServiceKind service) => Connection == ConnectionState.Connected && !_menuShown && !_promptActive &&
+        Snapshot.Services.TryGetValue(service, out var status) && status is { State: ServiceState.Planned, CanTrigger: true, Waiting: false };
 
     public Task<CommandReceipt> RequestServiceAsync(ServiceCommand command, CancellationToken cancellationToken)
     {
@@ -113,7 +158,7 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
     }
     private async Task<CommandReceipt> SendServiceAsync(ServiceCommand command)
     {
-        await _send.WaitAsync(_stop.Token).ConfigureAwait(false);
+        await _commands.WaitAsync(_stop.Token).ConfigureAwait(false);
         try
         {
             IGsxSocket? socket;
@@ -130,7 +175,11 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
             {
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
                 timeout.CancelAfter(_options.CommandTimeout);
-                await socket.SendAsync(GsxProtocol.Trigger(command.CommandId, command.Kind), timeout.Token).ConfigureAwait(false);
+                await _send.WaitAsync(timeout.Token).ConfigureAwait(false);
+                try { await socket.SendAsync(GsxProtocol.Trigger(command.CommandId, command.Kind), timeout.Token).ConfigureAwait(false); }
+                finally { _send.Release(); }
+                // The receive loop may need to write state.get before it reaches
+                // this command's result. Never hold its wire lock while waiting.
                 var receipt = await completion.Task.WaitAsync(timeout.Token).ConfigureAwait(false);
                 if (receipt.Status == ReceiptStatus.Unknown) lock (_sync) _uncertainServices.Add(command.Kind);
                 return receipt;
@@ -142,7 +191,7 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
             }
             finally { _pending.TryRemove(command.CommandId, out _); }
         }
-        finally { _send.Release(); }
+        finally { _commands.Release(); }
     }
     private async Task RunAsync()
     {
@@ -238,6 +287,12 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
                         Publish(observation.Kind, observation.State, observation.ObservedAt, $"{observation.Id}={observation.SemanticState}/{observation.StateRaw}; waiting={observation.Waiting}");
                 }
                 _observations = next;
+                if (frame.Type == "snapshot")
+                {
+                    var received = _snapshotReceived;
+                    _snapshotReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                    received.TrySetResult();
+                }
             }
             if (frame.ResultId is { } id && Guid.TryParse(id, out var commandId) && _pending.TryGetValue(commandId, out var completion))
             {
@@ -251,6 +306,7 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
     private void InvalidateObservations()
     {
         _completed.Clear();
+        _cachedSnapshot = null;
         _flightPlan = null; _aircraftType = null; _aircraftSetupKey = null;
         _menuShown = false; _promptActive = false;
         _handlerAirport = null; _handlerStand = null;
@@ -275,6 +331,7 @@ public sealed class GsxRemoteGateway : IGsxGateway, IGsxLiveState, IAsyncDisposa
         catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
         _events.Writer.TryComplete();
         _send.Dispose();
+        _commands.Dispose();
         _stop.Dispose();
     }
 }

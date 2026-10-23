@@ -8,12 +8,16 @@ using ADM.Infrastructure;
 namespace ADM.EndToEnd.Tests;
 
 // Synthetic contract fixture only. IsFake=false exercises real-adapter guards; it is never runtime proof.
-internal sealed class ScriptedLiveProvider : IGsxGateway, IGsxLiveState
+internal sealed class ScriptedLiveProvider : IGsxGateway, IGsxLiveState, IGsxRestartRecovery
 {
     public GsxLiveSnapshot Snapshot { get; set; } = new(ConnectionState.Connected, 1, DateTimeOffset.UtcNow,
         Enum.GetValues<ServiceKind>().ToImmutableDictionary(kind => kind, kind => Status(ServiceState.Planned)), "EGLL", "A1", "Fixture aircraft");
     public List<ServiceCommand> Sent { get; } = [];
     public ReceiptStatus Receipt { get; set; } = ReceiptStatus.Accepted;
+    public bool RestartReady { get; set; } = true;
+    public int RestartChecks { get; private set; }
+    public Task<bool> PrepareRestartAsync(ServiceKind service, long expectedGeneration, CancellationToken ct)
+    { RestartChecks++; return Task.FromResult(RestartReady && Snapshot.Generation == expectedGeneration); }
     public static GsxServiceStatus Status(ServiceState state) => new(state, state == ServiceState.Planned, false,
         new(EvidenceSource.Gsx, "Synthetic GSX contract fixture", DateTimeOffset.UtcNow));
     public void Set(ServiceKind kind, ServiceState state) => Snapshot = Snapshot with { Services = Snapshot.Services.SetItem(kind, Status(state)) };
@@ -27,6 +31,29 @@ internal sealed class ScriptedLiveProvider : IGsxGateway, IGsxLiveState
 
 public sealed class LiveWorkflowTests
 {
+    [Fact]
+    public async Task An_explicit_restart_checks_the_provider_before_creating_a_new_durable_intent()
+    {
+        string directory = DirectoryPath();
+        try
+        {
+            using var store = new SqliteDispatchStore(Path.Combine(directory, "dispatch.db"));
+            var provider = new ScriptedLiveProvider { Receipt = ReceiptStatus.Unknown, RestartReady = false };
+            var coordinator = Coordinator(provider, store); await Start(coordinator);
+            Assert.Single(provider.Sent);
+            provider.Receipt = ReceiptStatus.Accepted;
+            await coordinator.ReconcileAsync(Simulator, true, CancellationToken.None);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => coordinator.SendAsync("Restart water", Simulator, CancellationToken.None));
+            Assert.Single(provider.Sent); Assert.Equal(1, provider.RestartChecks);
+            provider.RestartReady = true;
+            await coordinator.SendAsync("Restart water", Simulator, CancellationToken.None);
+            Assert.Equal(2, provider.RestartChecks); Assert.Equal(2, provider.Sent.Count);
+            Assert.NotEqual(provider.Sent[0].CommandId, provider.Sent[1].CommandId);
+            Assert.True(provider.Sent[1].IntentVersion > provider.Sent[0].IntentVersion);
+        }
+        finally { Directory.Delete(directory, true); }
+    }
+
     internal sealed class Clock : IOperationalClock { public DateTimeOffset UtcNow => DateTimeOffset.UtcNow; }
     internal static SimulatorSnapshot Simulator => new(DateTimeOffset.UtcNow, ConnectionState.Connected, true, 0, true, false, "Fixture aircraft", null, null, null, EvidenceSource.SimConnect);
     internal static FlightPlanSnapshot Flight => new("BAW482", "EGLL", "EHAM", new("A20N", "A320_FAMILY"), DateTimeOffset.UtcNow);

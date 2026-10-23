@@ -1,8 +1,10 @@
 # Public release readiness — 23 October 2026
 
-Current candidate: **0.8.0-beta.8**. The source is prepared for public review; this is not clearance to publish a stable installer.
+Current candidate: **0.8.0-beta.9**. The source is prepared for public review; this is not clearance to publish a stable installer.
 
 ## Completed engineering review
+
+- The beta.9 maintenance review fixes GSX receive/send lock contention and explicit restart after uncertain delivery, bounds telemetry/logging, reduces repeated snapshot/database/UI work, and removes unused desktop paths. See [code-review-beta9.md](code-review-beta9.md) for scope, regressions and limits.
 
 - Skip-to commands follow the saved profile order. Planned optional services are skipped; active optional work needs observed cancellation or completion before the target proceeds. Required work, fuel and boarding approval remain enforced. At most one contextual shortcut is added to quick replies.
 - The owner confirmed on 23 October 2026 that the bundled native/managed SimConnect client pair may be distributed with ADM. This closes the project redistribution check on the basis of that confirmation; Microsoft ownership and separate terms remain unchanged.
@@ -21,7 +23,7 @@ Current candidate: **0.8.0-beta.8**. The source is prepared for public review; t
 
 ## Validation
 
-Release build: zero warnings/errors. All 428 automated tests passed locally (Application 48, Conversation 76, Domain 84, EndToEnd 92, Integration contracts 55, Desktop 73). New cases cover polite skip-to commands, custom order, required work, cancellation evidence, repeated requests, initial approval and checkpoint recovery. WPF acceptance includes both sounds decoding without playback, removal of Open GSX, and actual delayed reply delivery. Detailed reports remain in ignored artifacts/beta8-tests-final and artifacts/ui. The current remote status is available at https://github.com/DivineStag/ADM/actions and must be green for the exact candidate before publishing. Final package/native setup and remote CI results are reported with delivery.
+Release build: zero warnings/errors. All 442 automated tests passed locally (Application 47, Conversation 76, Domain 84, EndToEnd 101, Integration contracts 60, Desktop 74). New cases cover polite skip-to commands, custom order, required work, cancellation evidence, repeated requests, initial approval and checkpoint recovery. WPF acceptance includes both sounds decoding without playback, removal of Open GSX, and actual delayed reply delivery. Detailed reports remain in ignored artifacts/beta9-tests-final and artifacts/ui. The current remote status is available at https://github.com/DivineStag/ADM/actions and must be green for the exact candidate before publishing. Final package/native setup and remote CI results are reported with delivery.
 
 ## Remaining external release gates
 

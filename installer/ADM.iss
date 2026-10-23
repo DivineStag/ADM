@@ -2,7 +2,7 @@
   #error Payload must name the self-contained publish directory
 #endif
 #ifndef Version
-  #define Version "0.8.0-beta.8"
+  #define Version "0.8.0-beta.9"
 #endif
 #ifndef Output
   #define Output "."

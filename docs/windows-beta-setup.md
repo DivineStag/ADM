@@ -13,6 +13,6 @@ Use the specific action offered in Chat when a problem occurs. Repair installati
 
 Configured GitHub builds check for a stable update automatically. Settings → Help & support shows update status and Install update. Installation is available after handling is finished. A local build with no repository configured makes no update request. The familiar full setup wizard also handles updates; it is not a command script or a separate web downloader.
 
-The current unsigned local beta has not been cleared for public distribution. Windows can identify it as an unrecognised publisher. GitHub hosting does not remove that warning; signing and release qualification remain open. No Microsoft/Asobo or FSDT endorsement is claimed. See [distribution plan](github-distribution.md).
+The current unsigned beta still needs final live qualification before public distribution. Windows can identify it as an unrecognised publisher. The owner selected unsigned distribution and confirmed SimConnect client redistribution; signing is not a release requirement. No Microsoft/Asobo or FSDT endorsement is claimed. See [distribution plan](github-distribution.md).
 
 GSX owns the aircraft's brake/engine and physical service-readiness checks. ADM no longer repeats those cockpit checks; it still observes service availability, approvals, sequencing and current flight/connection identity. See [readiness policy](gsx-readiness-policy.md).

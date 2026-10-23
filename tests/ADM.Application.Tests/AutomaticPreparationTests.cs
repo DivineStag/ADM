@@ -68,10 +68,4 @@ public sealed class AutomaticPreparationTests
         };
         Assert.True(AutomaticPreparation.Check(Flight, sim, Gsx, true, Now).Ready);
     }
-    [Fact]
-    public async Task Removed_direct_importer_never_uses_an_account_or_network()
-    {
-        var result = await new GsxOnlyFlightImporter().ImportLatestAsync("unused", CancellationToken.None);
-        Assert.Null(result.Plan); Assert.Contains("GSX", result.Error);
-    }
 }

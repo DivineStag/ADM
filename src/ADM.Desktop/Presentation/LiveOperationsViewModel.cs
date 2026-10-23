@@ -26,7 +26,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     private readonly IAirlineProfileRepository _profiles;
     private readonly IDispatchStore _store;
     private readonly IFlightPlanCache _cache;
-    private readonly IFlightPlanImporter _importer;
     private readonly IConversationEngine _conversation;
     private readonly PersonaCatalogue _personas;
     private readonly JsonAircraftCapabilityCatalog _capabilities;
@@ -55,7 +54,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     private LiveDispatchCoordinator? _coordinator;
     private CancellationTokenSource? _stop;
     private Task? _worker;
-    private SimulatorSnapshot? _simulator;
+    private volatile SimulatorSnapshot? _simulator;
     private Guid _sessionId;
     private FlightPlanSnapshot? _flight;
     private FlightPlanSnapshot? _nextFlight;
@@ -64,29 +63,30 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     private bool _liveWorkspace;
     private string _status = "Load a flight and connect. I'll ask in Chat before starting services.";
     private string _draft = "";
-    private bool _connected;
+    private volatile bool _connected;
     private string? _lastOperationalStatus;
     private bool _messagesInitialized;
     private bool _prepareWhenReady;
     public event Action? ImportantMessage;
     public event Action? MessageSent;
     public LiveOperationsViewModel(IOperationalClock clock, IServicePlanResolver resolver, IAirlineIdentityResolver identity,
-        IAirlineProfileRepository profiles, IDispatchStore store, IFlightPlanCache cache, IFlightPlanImporter importer,
+        IAirlineProfileRepository profiles, IDispatchStore store, IFlightPlanCache cache,
         IConversationEngine conversation, PersonaCatalogue personas, JsonAircraftCapabilityCatalog capabilities, ILogger<LiveOperationsViewModel>? logger = null,
         IOperationalRealismEngine? realismEngine = null, IAirportGateProfiles? gateProfiles = null, IAssistantSetupStore? setupStore = null, IInstallationRepair? installationRepair = null, ChatTimingOptions? chatTiming = null)
     {
         _installationRepair = installationRepair;
         var timing = chatTiming ?? new(false); _delivery = new(timing.NextDelay);
         if (timing.Enabled && System.Windows.Application.Current is { } application)
+        {
             _deliveryTimer = new(TimeSpan.FromMilliseconds(100), System.Windows.Threading.DispatcherPriority.Background, (_, _) => FlushChat(), application.Dispatcher);
+            _deliveryTimer.Stop();
+        }
         _clock = clock; _resolver = resolver; _identity = identity; _profiles = profiles; _store = store; _cache = cache;
-        _importer = importer; _conversation = conversation; _personas = personas; _capabilities = capabilities;
+        _conversation = conversation; _personas = personas; _capabilities = capabilities;
         _logger = logger;
         _realismEngine = realismEngine; _gateProfiles = gateProfiles;
         _setupStore = setupStore ?? new MemoryAssistantSetupStore(); _setup = _setupStore.Load();
         RecoveryCommand = Command(RecoverAsync, () => _recovery.Action != RecoveryAction.None && !NeedsSetup);
-        ImportCommand = Command(ImportAsync);
-        CachedCommand = Command(async () => StageFlight(await _cache.LoadAsync(CancellationToken.None) ?? throw new InvalidOperationException("No cached flight is available.")));
         ManualCommand = Command(async () =>
         {
             var candidate = new FlightPlanSnapshot(Callsign.Trim().ToUpperInvariant(), Origin.Trim().ToUpperInvariant(), Destination.Trim().ToUpperInvariant(),
@@ -96,8 +96,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         });
         ConnectCommand = Command(ConnectAsync);
         StartCommand = Command(StartAsync, () => _connected && _coordinator?.Checkpoint is null);
-        ReconcileCommand = Command(async () => { await Required().ReconcileAsync(Simulator(), ReviewedCurrentServices, CancellationToken.None); Refresh(); }, () => _coordinator?.Checkpoint is not null);
-        GateCommand = Command(async () => { await Required().ConfirmGateAsync(Simulator(), CancellationToken.None); Refresh(); }, () => _coordinator?.Checkpoint is not null);
         SendCommand = Command(async () => { await SendMessageAsync(Draft); Draft = ""; Refresh(); }, () => CanChat && !string.IsNullOrWhiteSpace(Draft));
         QuickReplyCommand = new(value =>
         {
@@ -136,7 +134,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     public string RecoveryTitle => _recovery.Title;
     public string RecoveryDetail => _reviewingRecovery && _recovery.Action == RecoveryAction.Resume ? "Check that the current aircraft and GSX services belong to this flight. The button below confirms that review; it doesn't replay uncertain requests." : _recovery.Detail;
     public string RecoveryButton => _reviewingRecovery && _recovery.Action == RecoveryAction.Resume ? "States checked — resume" : _recovery.Button;
-    public SupportReport SupportSnapshot() => new(typeof(LiveOperationsViewModel).Assembly.GetName().Version?.ToString() ?? "unknown", _clock.UtcNow,
+    public SupportReport SupportSnapshot() => new(ApplicationVersion.Current, _clock.UtcNow,
         _simulator?.Connection.ToString() ?? "Offline", _gateway?.Connection.ToString() ?? "Offline", StageLabel,
         _gateway?.Snapshot.MenuOpen == true, _gateway?.Snapshot.AwaitingInput == true, _recovery.Action.ToString(),
         _coordinator?.Checkpoint?.State.Session.Services.Where(pair => pair.Key != ServiceKind.Deboarding).ToDictionary(pair => pair.Key, pair => pair.Value.State) ?? []);
@@ -199,7 +197,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     public AsyncRelayCommand PrepareNextCommand { get; }
     public AsyncRelayCommand EndDutyCommand { get; }
     public AsyncRelayCommand HistoryCommand { get; }
-    public string PilotId { get; set; } = "";
     public string Callsign { get; set; } = "";
     public string Origin { get; set; } = "";
     public string Destination { get; set; } = "";
@@ -213,7 +210,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     public string SelectedAirline { get => _selectedAirline; set { if (Set(ref _selectedAirline, value) && !HasOperation) PopulateFlight(); } }
     public IReadOnlyList<string> Airlines => new[] { "Automatic", "GENERIC", "RYR", "BAW", "UAL" }.Concat(SavedProfiles.Keys.Order()).Distinct().ToArray();
     public FlightOperationType Operation { get; set; } = FlightOperationType.FirstDeparture;
-    public IReadOnlyList<FlightOperationType> Operations { get; } = Enum.GetValues<FlightOperationType>();
     public IReadOnlyList<OperationOption> OperationChoices { get; } = [new(FlightOperationType.FirstDeparture, "First departure"), new(FlightOperationType.Turnaround, "Turnaround")];
     public OperationOption SelectedOperation { get => OperationChoices.First(option => option.Value == Operation); set { Operation = value.Value; Raise(); if (!HasOperation) PopulateFlight(); } }
     public string Draft { get => _draft; set { if (Set(ref _draft, value)) SendCommand.Refresh(); } }
@@ -272,15 +268,10 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> ServiceStatus { get; } = [];
     public ObservableCollection<DemoMessage> Messages { get; } = [];
     public ObservableCollection<string> QuickReplies { get; } = [];
-    public ObservableCollection<string> ReleaseStatus { get; } = [];
     public ImmutableDictionary<string, AirlineProfile> SavedProfiles { get; private set; } = ImmutableDictionary<string, AirlineProfile>.Empty;
-    public AsyncRelayCommand ImportCommand { get; }
-    public AsyncRelayCommand CachedCommand { get; }
     public AsyncRelayCommand ManualCommand { get; }
     public AsyncRelayCommand ConnectCommand { get; }
     public AsyncRelayCommand StartCommand { get; }
-    public AsyncRelayCommand ReconcileCommand { get; }
-    public AsyncRelayCommand GateCommand { get; }
     public AsyncRelayCommand SendCommand { get; }
     public RelayCommand QuickReplyCommand { get; }
     public AsyncRelayCommand EndCommand { get; }
@@ -355,14 +346,6 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         await ConnectAsync(); // New gateway/session identity; the existing start question still gates every request.
         Status = "Next sector selected. Check the route and aircraft; I'll ask in Chat before services start.";
         Refresh();
-    }
-    private async Task ImportAsync()
-    {
-        var result = await _importer.ImportLatestAsync(PilotId, CancellationToken.None);
-        if (result.Plan is null) throw new InvalidOperationException(result.Error);
-        FlightPlanValidation.Validate(result.Plan, _clock.UtcNow);
-        await _cache.SaveAsync(result.Plan, CancellationToken.None); StageFlight(result.Plan);
-        Status = _nextFlight is null ? "Flight imported. Check the route and aircraft before starting." : "Next flight staged. Current handling is unchanged; confirm the next sector in Flight.";
     }
     private void PopulateFlight()
     {
@@ -454,7 +437,9 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         if (_coordinator is null) await CreateCoordinatorAsync();
         _stop = new(); _gateway!.Start(); _connected = true;
         _prepareWhenReady = !HasOperation;
-        var ct = _stop.Token;
+        var stop = _stop;
+        var coordinator = _coordinator!;
+        var ct = stop.Token;
         _worker = Task.Run(async () =>
         {
             var telemetry = new SimConnectTelemetry(diagnostic: message => _logger?.LogInformation("{SimulatorDiagnostic}", message));
@@ -467,7 +452,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
                 while (!ct.IsCancellationRequested)
                 {
                     if (reader.IsFaulted) await reader.ConfigureAwait(false);
-                    if (_simulator is { } sim && _coordinator is { } coordinator) await coordinator.ObserveAsync(sim, ct).ConfigureAwait(false);
+                    if (_simulator is { } sim) await coordinator.ObserveAsync(sim, ct).ConfigureAwait(false);
                     System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => Refresh());
                     await Task.Delay(500, ct).ConfigureAwait(false);
                 }
@@ -476,11 +461,11 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
             catch (Exception exception)
             {
                 _logger?.LogError(exception, "Live handling stopped; no command will be replayed."); _connected = false;
-                try { await Required().PauseAsync("Live worker stopped; reconcile before continuing.", CancellationToken.None).ConfigureAwait(false); }
+                try { await coordinator.PauseAsync("Live worker stopped; reconcile before continuing.", CancellationToken.None).ConfigureAwait(false); }
                 catch (Exception saveError) { _logger?.LogError(saveError, "Could not persist the stopped worker checkpoint."); }
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => { Status = "Live handling stopped: " + exception.Message + " Reconnect, review and reconcile before continuing."; Raise(nameof(ConnectionLabel)); });
             }
-            finally { await _stop!.CancelAsync().ConfigureAwait(false); try { await reader.ConfigureAwait(false); } catch (OperationCanceledException) when (ct.IsCancellationRequested) { } catch (Exception exception) { _logger?.LogError(exception, "Simulator reader stopped."); } }
+            finally { await stop.CancelAsync().ConfigureAwait(false); try { await reader.ConfigureAwait(false); } catch (OperationCanceledException) when (ct.IsCancellationRequested) { } catch (Exception exception) { _logger?.LogError(exception, "Simulator reader stopped."); } }
         }, ct);
         Refresh();
     }
@@ -509,7 +494,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         NextSectorConfirmed = false;
         _visibleSession = _coordinator!.Checkpoint!.State.Session.Id;
         _visibleOffset = _coordinator.Checkpoint.VisibleMessageOffset;
-        Messages.Clear();
+        Messages.Clear(); _delivery.Clear(); _queuedMessages = 0;
         _messagesInitialized = true; // A new live question should ping; restored history remains silent.
         Refresh();
     }
@@ -535,9 +520,9 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
         if (_coordinator is not null && _lastOperationalStatus != _coordinator.Status) { Status = _coordinator.Status; _lastOperationalStatus = _coordinator.Status; }
         if (_coordinator?.Checkpoint is { } checkpoint)
         {
-            ServiceStatus.Clear();
-            foreach (var kind in ServiceSequence.Ordered(checkpoint.State.Session.Plan).Where(kind => kind != ServiceKind.Deboarding && checkpoint.State.Session.Services[kind].State != ServiceState.NotRequired))
-                ServiceStatus.Add($"{kind} · " + (checkpoint.State.Session.Services[kind].State switch
+            ReplaceIfChanged(ServiceStatus, ServiceSequence.Ordered(checkpoint.State.Session.Plan)
+                .Where(kind => kind != ServiceKind.Deboarding && checkpoint.State.Session.Services[kind].State != ServiceState.NotRequired)
+                .Select(kind => $"{kind} · " + (checkpoint.State.Session.Services[kind].State switch
                 {
                     ServiceState.RequestPending => "Request queued",
                     ServiceState.Requested => "Requested in GSX",
@@ -551,7 +536,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
                     ServiceState.Skipped => "Skipped by pilot",
                     ServiceState.Cancelled => "Cancelled",
                     _ => "Planned"
-                }));
+                })));
             if (_visibleSession != checkpoint.State.Session.Id || _visibleOffset != checkpoint.VisibleMessageOffset)
             { Messages.Clear(); _delivery.Clear(); _queuedMessages = 0; _visibleSession = checkpoint.State.Session.Id; _visibleOffset = checkpoint.VisibleMessageOffset; _messagesInitialized = false; }
             while (_queuedMessages + _visibleOffset < checkpoint.Messages.Length)
@@ -569,19 +554,17 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
             if (_nextFlight is not null && checkpoint.State.Session.Stage == WorkflowStage.Completed) replies = ["Start next sector", .. replies];
             if (_delivery.HasPendingDispatcher) replies = [];
             if (!QuickReplies.SequenceEqual(replies)) { QuickReplies.Clear(); foreach (var reply in replies) QuickReplies.Add(reply); }
-            ReleaseStatus.Clear();
         }
         else
         {
-            ServiceStatus.Clear(); Messages.Clear(); _delivery.Clear(); _queuedMessages = 0; QuickReplies.Clear(); ReleaseStatus.Clear(); _messagesInitialized = false;
+            ServiceStatus.Clear(); Messages.Clear(); _delivery.Clear(); _queuedMessages = 0; QuickReplies.Clear(); _messagesInitialized = false;
             if (_nextFlight is not null) QuickReplies.Add("Start next sector");
             if (_flight is not null && _coordinator?.Duty is { DepartureObserved: true }) ClearFlight();
         }
-        SectorHistory.Clear();
-        if (_coordinator?.Duty is { } duty)
-            foreach (var sector in duty.Sectors) SectorHistory.Add($"{sector.Number:00} · {sector.Flight.Callsign} · {sector.Flight.Origin} → {sector.Flight.Destination} · {sector.Airline} r{sector.ProfileRevision} · {sector.Dispatcher.Persona.Name} · {(sector.HandlingCompleted ? "Handling completed" : sector.Archived ? "Archived incomplete" : "Handling active")}");
+        ReplaceIfChanged(SectorHistory, _coordinator?.Duty?.Sectors.Select(sector =>
+            $"{sector.Number:00} · {sector.Flight.Callsign} · {sector.Flight.Origin} → {sector.Flight.Destination} · {sector.Airline} r{sector.ProfileRevision} · {sector.Dispatcher.Persona.Name} · {(sector.HandlingCompleted ? "Handling completed" : sector.Archived ? "Archived incomplete" : "Handling active")}") ?? []);
         foreach (string name in new[] { nameof(HasRecovery), nameof(RecoveryTitle), nameof(RecoveryDetail), nameof(RecoveryButton), nameof(ConnectionLabel), nameof(HasOperation), nameof(HandlingActive), nameof(HasWorkspace), nameof(CanChat), nameof(ChatStatus), nameof(NeedsSetup), nameof(ShowWelcome), nameof(WelcomeMessage), nameof(LoadLabel), nameof(DutyLabel), nameof(ArrivalLabel), nameof(NextFlightLabel), nameof(FlightLabel), nameof(ProfileLabel), nameof(Compatibility), nameof(ServiceDetails), nameof(RealismDetails) }) Raise(name);
-        foreach (var command in new[] { StartCommand, ReconcileCommand, GateCommand, SendCommand, EndCommand, ClearChatCommand, PrepareNextCommand, EndDutyCommand, CompleteSetupCommand, RecoveryCommand }) command.Refresh();
+        foreach (var command in new[] { StartCommand, SendCommand, EndCommand, ClearChatCommand, PrepareNextCommand, EndDutyCommand, CompleteSetupCommand, RecoveryCommand }) command.Refresh();
         QuickReplyCommand.Refresh();
         if (_automatic && AutoConnect && !_connected && (_worker is null || _worker.IsCompleted) && _clock.UtcNow - _lastConnectionAttempt > TimeSpan.FromSeconds(10) && ConnectCommand.CanExecute(null)) ConnectCommand.Execute(null);
         if (_prepareWhenReady && !HasOperation && _flight is not null && AutomationDisabled && IntegrationReviewed && FlightConfirmed &&
@@ -599,9 +582,13 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
     public async Task StopAsync()
     {
         if (_stop is not null) await _stop.CancelAsync().ConfigureAwait(false);
-        if (_worker is not null) await _worker.ConfigureAwait(false);
+        if (_worker is not null)
+        {
+            try { await _worker.ConfigureAwait(false); }
+            catch (OperationCanceledException) when (_stop?.IsCancellationRequested == true) { }
+        }
         if (_gateway is not null) await _gateway.DisposeAsync().ConfigureAwait(false);
-        _stop?.Dispose(); _stop = null; _worker = null; _connected = false; _prepareWhenReady = false;
+        _stop?.Dispose(); _stop = null; _worker = null; _connected = false; _prepareWhenReady = false; _simulator = null;
     }
     private void FlushChat()
     {
@@ -615,6 +602,7 @@ public sealed class LiveOperationsViewModel : ObservableObject, IDisposable
             if (delivered.Notify && ConversationPresentation.ShouldNotify(message)) incoming = true;
         }
         if (incoming) ImportantMessage?.Invoke();
+        if (_delivery.HasPendingDispatcher) _deliveryTimer?.Start(); else _deliveryTimer?.Stop();
         if (wasPending && !_delivery.HasPendingDispatcher && _deliveryTimer is not null) Refresh();
     }
     public void Dispose() { _deliveryTimer?.Stop(); _delivery.Clear(); _refreshTimer?.Stop(); StopAsync().GetAwaiter().GetResult(); }

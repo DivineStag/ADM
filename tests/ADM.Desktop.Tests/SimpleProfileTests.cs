@@ -71,7 +71,7 @@ public sealed class SimpleProfileTests
             var listed = await repository.ListAsync(CancellationToken.None); Assert.Single(listed); Assert.Equal("EZY", listed[0].Icao);
             var identity = new AirlineIdentityResolver(["BAW"]); Assert.Equal("GENERIC", identity.Resolve(new("EZY123", null, null, false), null).Icao);
             using var store = new SqliteDispatchStore(Path.Combine(directory, "dispatch.db")); var clock = new Clock(); var personas = PersonaCatalogue.LoadBundled();
-            using var vm = new LiveOperationsViewModel(clock, new FoundationServicePlanResolver(clock), identity, repository, store, store, new GsxOnlyFlightImporter(),
+            using var vm = new LiveOperationsViewModel(clock, new FoundationServicePlanResolver(clock), identity, repository, store, store,
                 new LocalConversationEngine(personas), personas, new JsonAircraftCapabilityCatalog(Path.Combine(directory, "aircraft.json")));
             await vm.InitializeAsync(); Assert.Contains("EZY", vm.Airlines); Assert.Contains("EZY", vm.SavedProfiles.Keys);
             Assert.Equal("EZY", identity.Resolve(new("EZY123", null, null, false), null).Icao);

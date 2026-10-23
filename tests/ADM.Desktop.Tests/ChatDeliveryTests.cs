@@ -70,4 +70,20 @@ public sealed class ChatDeliveryTests
         for (int i = 0; i < 100; i++) Assert.InRange(timing.NextDelay(), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
         Assert.Equal(TimeSpan.Zero, new ChatTimingOptions(false).NextDelay());
     }
+
+    [Fact]
+    public void A_large_mixed_backlog_keeps_future_replies_in_order_after_dropping_stale_questions()
+    {
+        var queue = new ChatDeliveryQueue(() => TimeSpan.FromSeconds(5));
+        var expected = new List<ConversationMessage>();
+        for (int index = 0; index < 1000; index++)
+        {
+            queue.Enqueue(Message("boarding.approval:1::"), Now);
+            var reply = Message("reply:" + index); expected.Add(reply); queue.Enqueue(reply, Now);
+            queue.Enqueue(Message("pilot:" + index, "You"), Now);
+        }
+        Assert.Equal(1000, queue.Drain(Now, message => ChatDeliveryQueue.IsRelevant(message, null)).Count);
+        Assert.Equal(expected, queue.Drain(Now.AddSeconds(5)).Select(item => item.Message));
+        Assert.False(queue.HasPendingDispatcher); Assert.Empty(queue.Drain(Now.AddMinutes(1)));
+    }
 }

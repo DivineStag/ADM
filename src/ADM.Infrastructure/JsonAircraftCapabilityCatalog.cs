@@ -13,10 +13,11 @@ public sealed class JsonAircraftCapabilityCatalog(string path)
     {
         if (File.Exists(path))
         {
+            if (new FileInfo(path).Length > 1_048_576) throw new InvalidDataException("Aircraft capability matrix exceeds the 1 MiB limit.");
             var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
             { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, Converters = { new JsonStringEnumConverter(allowIntegerValues: false) } };
             var document = JsonSerializer.Deserialize<AircraftCapabilityDocument>(File.ReadAllText(path), options);
-            if (document is null || document.SchemaVersion != 1 || document.Aircraft.IsDefault) throw new InvalidDataException("Aircraft capability matrix is invalid.");
+            if (document is null || document.SchemaVersion != 1 || document.Aircraft.IsDefault || document.Aircraft.Any(profile => profile is null)) throw new InvalidDataException("Aircraft capability matrix is invalid.");
             foreach (var profile in document.Aircraft)
             {
                 if (CanonicalAircraftIdentity.Create(profile.IcaoType, null).IcaoType != profile.IcaoType || profile.Services is null || profile.ConcurrentGroups.IsDefault ||

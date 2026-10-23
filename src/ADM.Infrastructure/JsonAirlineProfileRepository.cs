@@ -40,6 +40,7 @@ public sealed class JsonAirlineProfileRepository(string directory, Action<string
             if (!File.Exists(candidate)) continue;
             try
             {
+                if (new FileInfo(candidate).Length > 1_048_576) throw new ArgumentException("Profile exceeds the 1 MiB limit.");
                 var profile = ProfileJsonCodec.Parse(await File.ReadAllTextAsync(candidate, cancellationToken).ConfigureAwait(false));
                 if (profile.Icao != icao) throw new ArgumentException("Profile key mismatch.");
                 if (candidate.EndsWith(".bak", StringComparison.Ordinal)) diagnostic?.Invoke($"{icao}: restored last valid profile revision.");
@@ -52,7 +53,9 @@ public sealed class JsonAirlineProfileRepository(string directory, Action<string
     }
     public async Task SaveAsync(AirlineProfile profile, CancellationToken cancellationToken)
     {
-        ProfileJsonCodec.Validate(profile); ValidateKey(profile.Icao);
+        string json = ProfileJsonCodec.Serialize(profile);
+        ValidateKey(profile.Icao);
+        if (System.Text.Encoding.UTF8.GetByteCount(json) > 1_048_576) throw new ArgumentException("Profile exceeds the 1 MiB limit; the previous revision was kept.");
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -65,7 +68,7 @@ public sealed class JsonAirlineProfileRepository(string directory, Action<string
             string temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
-                await File.WriteAllTextAsync(temporary, ProfileJsonCodec.Serialize(profile), cancellationToken).ConfigureAwait(false);
+                await File.WriteAllTextAsync(temporary, json, cancellationToken).ConfigureAwait(false);
                 _ = ProfileJsonCodec.Parse(await File.ReadAllTextAsync(temporary, cancellationToken).ConfigureAwait(false));
                 // Keep the validated previous revision, rather than backing up possibly corrupted input.
                 if (current is not null) await File.WriteAllTextAsync(path + ".bak", ProfileJsonCodec.Serialize(current), cancellationToken).ConfigureAwait(false);

@@ -24,14 +24,21 @@ public sealed class GsxRemoteTests
         public Channel<string> Frames { get; } = Channel.CreateUnbounded<string>();
         public ConcurrentQueue<string> Sent { get; } = new();
         public bool AutoAccept { get; set; } = true;
+        public bool EngineBeforeResult { get; set; }
+        public string? SnapshotOnRequest { get; set; }
         public Uri? Endpoint { get; private set; }
         public Task ConnectAsync(Uri endpoint, CancellationToken cancellationToken) { Endpoint = endpoint; return Task.CompletedTask; }
         public Task SendAsync(string text, CancellationToken cancellationToken)
         {
             Sent.Enqueue(text);
             using var document = JsonDocument.Parse(text);
+            if (document.RootElement.TryGetProperty("verb", out var verb) && verb.GetString() == "state.get" && SnapshotOnRequest is { } snapshot)
+                Frames.Writer.TryWrite(snapshot);
             if (AutoAccept && document.RootElement.TryGetProperty("id", out var id))
+            {
+                if (EngineBeforeResult) Frames.Writer.TryWrite("""{"v":1,"type":"event","ts":1792500002,"topic":"engine","gsxRunning":true}""");
                 Frames.Writer.TryWrite(JsonSerializer.Serialize(new { v = 1, type = "result", ts = 1792500002, id = id.GetString(), ok = true }));
+            }
             return Task.CompletedTask;
         }
         public async Task<string?> ReceiveAsync(CancellationToken cancellationToken)
@@ -52,6 +59,69 @@ public sealed class GsxRemoteTests
         var socket = new Socket(); socket.Frames.Writer.TryWrite(Hello); socket.Frames.Writer.TryWrite(Services()); return socket;
     }
     private static GsxRemoteOptions Options => new() { CommandTimeout = TimeSpan.FromSeconds(2), ReconnectDelay = TimeSpan.FromMilliseconds(30) };
+
+    [Fact]
+    public async Task An_engine_event_before_a_command_result_cannot_deadlock_the_receiver()
+    {
+        var socket = ReadySocket(); socket.EngineBeforeResult = true;
+        Guid session = Guid.NewGuid();
+        await using var gateway = new GsxRemoteGateway(session, Options, () => socket);
+        gateway.Start(); await Until(() => gateway.Connection == ConnectionState.Connected);
+        Assert.Equal(ReceiptStatus.Accepted, (await gateway.RequestServiceAsync(Command(session), CancellationToken.None)).Status);
+        Assert.Contains(socket.Sent, frame => frame.Contains("state.get", StringComparison.Ordinal));
+        Assert.Single(socket.Sent, frame => frame.Contains("service.trigger", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Explicit_restart_requires_a_new_snapshot_and_never_replays_the_old_intent(bool available)
+    {
+        var socket = ReadySocket(); socket.AutoAccept = false;
+        Guid session = Guid.NewGuid(); var command = Command(session);
+        await using var gateway = new GsxRemoteGateway(session, Options, () => socket);
+        gateway.Start(); await Until(() => gateway.Connection == ConnectionState.Connected);
+        Assert.Equal(ReceiptStatus.Unknown, (await gateway.RequestServiceAsync(command, CancellationToken.None)).Status);
+        socket.SnapshotOnRequest = available ? Services() : Services("performing", 5, trigger: false);
+        socket.AutoAccept = true;
+        Assert.Equal(available, await gateway.PrepareRestartAsync(ServiceKind.Water, gateway.Snapshot.Generation, CancellationToken.None));
+        Assert.Equal(ReceiptStatus.Unknown, (await gateway.RequestServiceAsync(command, CancellationToken.None)).Status);
+        var restart = command with { CommandId = Guid.NewGuid(), IntentVersion = 2 };
+        Assert.Equal(available ? ReceiptStatus.Accepted : ReceiptStatus.Rejected, (await gateway.RequestServiceAsync(restart, CancellationToken.None)).Status);
+        Assert.Equal(available ? 2 : 1, socket.Sent.Count(frame => frame.Contains("service.trigger", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task Repeated_snapshot_reads_reuse_the_immutable_projection_until_provider_data_changes()
+    {
+        var socket = ReadySocket();
+        await using var gateway = new GsxRemoteGateway(Guid.NewGuid(), Options, () => socket);
+        gateway.Start(); await Until(() => gateway.Connection == ConnectionState.Connected);
+        var first = gateway.Snapshot;
+        for (int index = 0; index < 100; index++) Assert.Same(first, gateway.Snapshot);
+        socket.Frames.Writer.TryWrite("""{"v":1,"type":"patch","ts":1792584001,"path":"/menuShown","value":true}""");
+        await Until(() => gateway.Snapshot.MenuOpen);
+        Assert.NotSame(first, gateway.Snapshot);
+        Assert.False(first.MenuOpen);
+    }
+
+    [Fact]
+    public async Task An_unread_observation_feed_is_bounded_but_the_current_snapshot_retains_completion()
+    {
+        var socket = ReadySocket();
+        await using var gateway = new GsxRemoteGateway(Guid.NewGuid(), Options, () => socket);
+        gateway.Start(); await Until(() => gateway.Connection == ConnectionState.Connected);
+        for (int index = 0; index < 600; index++)
+            socket.Frames.Writer.TryWrite(index % 2 == 0 ? Services("performing", 5, trigger: false) : Services());
+        socket.Frames.Writer.TryWrite(Services("completed", 6, trigger: false));
+        await Until(() => gateway.Snapshot.Services[ServiceKind.Water].State == ServiceState.Completed);
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var events = gateway.WatchAsync(stop.Token).GetAsyncEnumerator();
+        for (int index = 0; index < 256; index++) Assert.True(await events.MoveNextAsync());
+        Assert.Equal(ServiceState.Completed, events.Current.State);
+        stop.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await events.MoveNextAsync());
+    }
 
     [Theory]
     [InlineData("available", 1, ServiceState.Planned)]

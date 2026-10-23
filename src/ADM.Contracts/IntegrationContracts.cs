@@ -57,6 +57,12 @@ public interface IGsxLiveState
     GsxLiveSnapshot Snapshot { get; }
 }
 
+/// <summary>Explicit pilot restart only: refresh provider state before releasing an uncertain-service block.</summary>
+public interface IGsxRestartRecovery
+{
+    Task<bool> PrepareRestartAsync(ServiceKind service, long expectedGeneration, CancellationToken cancellationToken);
+}
+
 public sealed record FlightPlanResult(FlightPlanSnapshot? Plan, string? Error);
 public interface IFlightPlanImporter
 {

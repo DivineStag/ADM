@@ -9,7 +9,6 @@ using ADM.Desktop.Verification;
 using ADM.Infrastructure;
 using ADM.Integrations.Gsx;
 using ADM.Integrations.Sim;
-using ADM.Operations;
 using ADM.Simulation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,15 +40,16 @@ public partial class App : System.Windows.Application
             builder.Services.AddSingleton<IOperationalClock, SystemOperationalClock>();
             builder.Services.AddSingleton<IServicePlanResolver, FoundationServicePlanResolver>();
             builder.Services.AddSingleton<IAirlineIdentityResolver>(new AirlineIdentityResolver(["RYR", "BAW", "UAL"]));
-            builder.Services.AddSingleton<IGsxGateway, FakeGsxGateway>();
-            builder.Services.AddSingleton<ISimulatorTelemetry, FakeSimulatorTelemetry>();
-            builder.Services.AddSingleton<SampleSessionFactory>();
-            builder.Services.AddHostedService<FoundationMonitor>();
+            if (_testMode)
+            {
+                builder.Services.AddSingleton<IGsxGateway, FakeGsxGateway>();
+                builder.Services.AddSingleton<ISimulatorTelemetry, FakeSimulatorTelemetry>();
+                builder.Services.AddHostedService<FoundationMonitor>();
+            }
             builder.Services.AddSingleton<MainViewModel>();
             builder.Services.AddSingleton(_ => new GitHubUpdates(new System.Net.Http.HttpClient(new System.Net.Http.HttpClientHandler { AllowAutoRedirect = false }),
                 _testMode ? "" : GitHubUpdates.ConfiguredRepository,
-                typeof(App).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
-                    .Cast<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion.Split('+')[0]));
+                ApplicationVersion.Current));
             builder.Services.AddSingleton<ISupportReportExporter, SupportReportExporter>();
             builder.Services.AddSingleton(new ChatTimingOptions(!_testMode));
             builder.Services.AddSingleton<IInstallationRepair>(_ => _testMode ? new VerificationInstallationRepair() : new InstallationRepair());
@@ -68,12 +68,10 @@ public partial class App : System.Windows.Application
                 message => provider.GetRequiredService<ILogger<JsonAirportGateProfiles>>().LogWarning("{GateProfileDiagnostic}", message)));
             builder.Services.AddSingleton<IProfileTransfer, JsonProfileTransfer>();
             builder.Services.AddSingleton<IProfileFileDialogs, ProfileFileDialogs>();
-            builder.Services.AddSingleton<IFlightPlanImporter, GsxOnlyFlightImporter>();
             builder.Services.AddSingleton<IAssistantSetupStore>(_ => _testMode ? new MemoryAssistantSetupStore() : new JsonAssistantSetupStore(Path.Combine(dataDirectory, "setup.json")));
             builder.Services.AddSingleton<LiveOperationsViewModel>();
             builder.Services.AddSingleton(PersonaCatalogue.LoadBundled());
             builder.Services.AddSingleton<IConversationEngine, LocalConversationEngine>();
-            builder.Services.AddSingleton<IGateReadinessCoordinator, GateReadinessCoordinator>();
             builder.Services.AddSingleton<INotificationPlayer, NotificationPlayer>();
             builder.Services.AddSingleton<IUiPreferencesStore>(_ => _testMode
                 ? new TransientUiPreferencesStore()
@@ -129,7 +127,7 @@ public partial class App : System.Windows.Application
             }
             MainWindow.Show();
             if (!_testMode) viewModel.Updates.CheckCommand.Execute(null);
-            if (!_testMode && viewModel.Live is not null) { viewModel.Live.AutoConnect = true; await viewModel.Live.StartAutomaticAsync(); }
+            if (!_testMode && viewModel.Live is not null) await viewModel.Live.StartAutomaticAsync();
         }
         catch (Exception exception)
         {

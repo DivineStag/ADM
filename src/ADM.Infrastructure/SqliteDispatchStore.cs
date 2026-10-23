@@ -12,6 +12,7 @@ public sealed class SqliteDispatchStore(string path) : IDispatchStore, IFlightPl
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private FileStream? _ownership;
+    private bool _initialized;
     private async Task<SqliteConnection> OpenAsync(CancellationToken ct)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
@@ -21,10 +22,19 @@ public sealed class SqliteDispatchStore(string path) : IDispatchStore, IFlightPl
         {
             await connection.OpenAsync(ct).ConfigureAwait(false);
             using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;";
+            await command.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
+            if (_initialized) return connection;
+            command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='schema_version'";
+            if (Convert.ToInt64(await command.ExecuteScalarAsync(ct).ConfigureAwait(false), System.Globalization.CultureInfo.InvariantCulture) != 0)
+            {
+                command.CommandText = "SELECT version FROM schema_version LIMIT 2";
+                await using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                if (!await reader.ReadAsync(ct).ConfigureAwait(false) || reader.GetValue(0) is not long version || version != 1 || await reader.ReadAsync(ct).ConfigureAwait(false))
+                    throw new InvalidDataException("Unsupported or ambiguous ADM database version; no schema was changed.");
+            }
             command.CommandText = """
                 PRAGMA journal_mode=WAL;
-                PRAGMA synchronous=FULL;
-                PRAGMA busy_timeout=5000;
                 CREATE TABLE IF NOT EXISTS schema_version(version INTEGER NOT NULL);
                 INSERT INTO schema_version SELECT 1 WHERE NOT EXISTS(SELECT 1 FROM schema_version);
                 CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY, checkpoint TEXT NOT NULL, flight TEXT NOT NULL, aircraft TEXT NOT NULL, archived INTEGER NOT NULL, saved TEXT NOT NULL);
@@ -40,6 +50,7 @@ public sealed class SqliteDispatchStore(string path) : IDispatchStore, IFlightPl
             command.CommandText = "SELECT version FROM schema_version";
             if (Convert.ToInt32(await command.ExecuteScalarAsync(ct).ConfigureAwait(false), System.Globalization.CultureInfo.InvariantCulture) != 1)
                 throw new InvalidDataException("Unsupported ADM database version; no session was dispatched.");
+            _initialized = true;
             return connection;
         }
         catch { await connection.DisposeAsync().ConfigureAwait(false); throw; }

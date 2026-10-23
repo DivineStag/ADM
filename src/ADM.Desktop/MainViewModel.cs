@@ -38,7 +38,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         PreferencesWarning = loaded.Warning ?? "Appearance and notification preferences save when ADM closes.";
         Profiles = new(resolver, preferences.ServiceSequences);
         Live = live;
-        Updates = new(updates ?? new GitHubUpdates(new System.Net.Http.HttpClient(), "", "0.8.0-beta.4"),
+        Updates = new(updates ?? new GitHubUpdates(new System.Net.Http.HttpClient(), "", ApplicationVersion.Current),
             () => Live?.HandlingActive == true);
         if (Live is not null) Live.RealismPreferences = () => new(RealismEnabled, DelayProbabilityPercent, MaximumDelayMinutes);
         ImportProfileCommand = new(async () =>

@@ -291,6 +291,11 @@ public sealed class LiveDispatchCoordinator(IGsxGateway gateway, IGsxLiveState l
                 _runtime.Checkpoint.State.Session.Services[restarting].State == ServiceState.Unknown &&
                 (!_armed || !live.Snapshot.Services.TryGetValue(restarting, out var currentService) || !currentService.CanTrigger || currentService.Waiting))
                 throw new InvalidOperationException("Reconcile first, then restart only when GSX shows this service available.");
+            if (intent.Kind == PilotIntentKind.ResumeService && intent.Service is { } recovering &&
+                _runtime.Checkpoint.State.Session.Services[recovering].State is ServiceState.Unknown or ServiceState.Failed &&
+                gateway is IGsxRestartRecovery recovery &&
+                (!_armed || !await recovery.PrepareRestartAsync(recovering, _generation, ct).ConfigureAwait(false)))
+                throw new InvalidOperationException("GSX has not freshly confirmed this service is available. Recheck its state before restarting; the previous request was not repeated.");
             var previousService = intent.Service is { } selectedService ? _runtime.Checkpoint.State.Session.Services[selectedService] : null;
             _runtime.Send(message);
             if (intent.Kind == PilotIntentKind.ResumeService && intent.Service is { } resumed && previousService != _runtime.Checkpoint.State.Session.Services[resumed])
