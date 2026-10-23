@@ -5,6 +5,7 @@ Current candidate: **0.8.0-beta.8**. The source is prepared for public review; t
 ## Completed engineering review
 
 - Skip-to commands follow the saved profile order. Planned optional services are skipped; active optional work needs observed cancellation or completion before the target proceeds. Required work, fuel and boarding approval remain enforced. At most one contextual shortcut is added to quick replies.
+- The owner confirmed on 23 October 2026 that the bundled native/managed SimConnect client pair may be distributed with ADM. This closes the project redistribution check on the basis of that confirmation; Microsoft ownership and separate terms remain unchanged.
 - The owner selected unsigned distribution. The draft workflow no longer needs a certificate or signing secret, and release-notice selection is independent of signing. Windows may show an unknown-publisher warning.
 - Natural local chat, brief quick replies, combined manual gate/boarding approval and conversational final sign-off. No physical door/equipment or pushback commands are dispatched.
 - Open GSX/browser launching removed. Recovery offers a read-only state recheck instead.
@@ -24,8 +25,7 @@ Release build: zero warnings/errors. All 428 automated tests passed locally (App
 
 ## Remaining external release gates
 
-1. **Microsoft runtime redistribution:** no explicit applicable grant for the exact MSFS 2024 native/managed SimConnect pair was found. Obtain the appropriate Microsoft clarification before public bundling. Existing DLL usage by other addons is not treated as proof. See licensing/release-review.md.
-2. **Release runner:** configure the controlled Windows packaging runner, or build the installer locally. The owner selected unsigned distribution; signing is not a release gate. Windows may show an unknown-publisher warning.
-3. **Live qualification:** owner confirmed the preceding setup installs on a fresh machine. Final end-to-end handling of this candidate, cancellation/reconnect and consecutive live sectors still need pilot confirmation, along with clean-machine Start/Apps/repair checks and documented supported aircraft/GSX versions. Offline fixtures do not establish universal compatibility.
+1. **Release runner:** configure the controlled Windows packaging runner, or build the installer locally. The owner selected unsigned distribution; signing is not a release gate. Windows may show an unknown-publisher warning.
+2. **Live qualification:** owner confirmed the preceding setup installs on a fresh machine. Final end-to-end handling of this candidate, cancellation/reconnect and consecutive live sectors still need pilot confirmation, along with clean-machine Start/Apps/repair checks and documented supported aircraft/GSX versions. Offline fixtures do not establish universal compatibility.
 
 Only publish a stable ADM-Setup.exe after these points are resolved. Drafts/prereleases remain outside the automatic stable update channel. No public installer is published by this preparation.

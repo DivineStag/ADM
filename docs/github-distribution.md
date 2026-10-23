@@ -24,7 +24,7 @@ The GitHub digest protects against corruption and source substitution outside th
 
 ## Maintainer setup
 
-1. The GitHub target is DivineStag/ADM. The owner selected the ADM freeware licence with source reuse rights reserved. Confirm runtime/media distribution rights and finish the live/clean-PC gates before public publication.
+1. The GitHub target is DivineStag/ADM. The owner selected the ADM freeware licence with source reuse rights reserved. SimConnect client redistribution is owner-confirmed as recorded in the licensing review. Retain third-party notices and finish the live/clean-PC gates before public publication.
 2. Protect the default branch and releases. Create a protected `community-release` environment with required human reviewers.
 3. Provide a controlled Windows x64 release runner labelled `adm-release`, with .NET 10, the official developer SDK, Inno Setup 6.7+ and GitHub CLI. Do not commit proprietary SDK files or certificates. Ordinary CI can build/test without the SDK but cannot produce the live runtime package.
 4. No signing setup is needed. Windows may show an unknown-publisher warning for the unsigned installer. Signing is not required; the owner selected unsigned distribution. The workflow does not request signing secrets or a certificate.

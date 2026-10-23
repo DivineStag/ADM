@@ -6,7 +6,7 @@ Source transfer includes the solution, application/test code, 25 default profile
 
 The Windows foundation workflow builds and tests on hosted Windows without needing the SDK. Live release packaging remains an explicit protected workflow on the developer release runner with the official SDK. The owner selected unsigned distribution; no signing configuration is required. It creates a draft; no installer is automatically published by pushing source.
 
-An empty/no-stable-release repository shows “No public release is available yet”, not “up to date”. Once a qualified stable ADM-Setup.exe is published with a GitHub SHA-256 digest, configured builds can check/download it using existing validation. No public release has been created during setup. The owner selected the ADM freeware licence with source reuse rights reserved. Runtime redistribution and final live qualification remain separate gates.
+An empty/no-stable-release repository shows “No public release is available yet”, not “up to date”. Once a qualified stable ADM-Setup.exe is published with a GitHub SHA-256 digest, configured builds can check/download it using existing validation. No public release has been created during setup. The owner selected the ADM freeware licence with source reuse rights reserved. The owner confirmed SimConnect client redistribution on 23 October 2026. Final live qualification remains outstanding.
 
 ## Verification and upload status
 

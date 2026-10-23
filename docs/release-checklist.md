@@ -12,7 +12,7 @@ The latest readiness review is [public-release-readiness.md](public-release-read
 - [x] Owner selected freeware with source reuse rights reserved; root licence is included by setup.
 - [x] Automated build/tests and local WPF/audio/delay acceptance; evidence recorded in current readiness report.
 - [x] Owner reports successful fresh-machine installation of the preceding setup.
-- [ ] Confirm exact SimConnect binary redistribution permission.
+- [x] Owner confirmed on 23 October 2026 that the bundled SimConnect client files may be distributed with ADM; see the licensing review.
 - [x] Unsigned distribution selected by the owner; no signing secret or certificate is required.
 - [ ] Configure the Windows packaging runner/environment or prepare the release locally.
 - [ ] Complete this candidate's live aircraft/recovery/consecutive-sector matrix and clean-machine Start/Apps/repair checks.

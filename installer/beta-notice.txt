@@ -6,6 +6,6 @@ This installer includes the application and its runtime. You do not need to inst
 
 ADM installs for your Windows account. Your profiles and history are stored separately and kept when uninstalling.
 
-This local beta is unsigned. It has not been qualified for public distribution. Microsoft runtime redistribution permission and final live aircraft qualification remain outstanding. Audio provenance and third-party terms are recorded in the installed licensing notices.
+This local beta is unsigned. It has not been qualified for public distribution. The owner has confirmed redistribution of the bundled SimConnect client files. Final live aircraft qualification remains outstanding. Audio provenance and third-party terms are recorded in the installed licensing notices.
 
 Pushback always belongs to the pilot.

@@ -52,4 +52,4 @@ $hash | Set-Content -LiteralPath ($setup + '.sha256')
 [pscustomobject]@{ Installer=$setup; Sha256=$hash; Payload=$payload; Version=$Version; Repository=$Repository; Distribution='Local qualification only until release gates pass' } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $workspaceRoot 'artifacts\m8-setup.json')
 Write-Output ('Windows setup ready: ' + $setup)
-Write-Output 'No public upload performed. Runtime redistribution and live qualification remain separate gates. Signing is optional.'
+Write-Output 'No public upload performed. SimConnect redistribution is recorded as owner-confirmed. Final live qualification remains outstanding. Signing is optional.'

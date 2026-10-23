@@ -19,4 +19,4 @@
 | GSX versions | Record exact tested versions; no unrestricted compatibility claim | Pending |
 | Keyboard, scaling, screen reader and small window usability | Current binding/layout checks; human accessibility review needed | Partial |
 
-The pilot does not install the SDK. Clean-PC qualification must use only the packaged runtime and separately installed MSFS/GSX. Public runtime redistribution clearance is an independent gate.
+The pilot does not install the SDK. Clean-PC qualification must use only the packaged runtime and separately installed MSFS/GSX. The owner confirmed redistribution of the bundled SimConnect client pair on 23 October 2026; the live and clean-PC qualification checks remain separate.
