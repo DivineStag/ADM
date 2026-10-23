@@ -59,20 +59,21 @@ public static class QuickChat
 
     public static string Message(string command, OperationalContext context, int turn)
     {
-        string[] variants = command switch
-        {
-            "Yes, start services" => ["Please can you start the services?", "Could you get the services going, please?", "Go ahead and start the ground services, thanks."],
-            "Yes, start boarding" => ["Please start boarding.", "Could you begin boarding, please?", "Go ahead and start boarding, thanks."],
-            "Yes, close up" => ["Please close the doors.", "Could you close the doors, please?", "Go ahead and close the doors, thanks."],
-            "Not yet" => ["Not yet, please.", "Not yet, thanks."],
-            "Hold boarding" => ["Please hold off on boarding.", "Could you hold boarding, please?"],
-            "Keep connected" => ["Please keep connected.", "Could you keep connected, please?"],
-            "Are we ready?" => ["How are we getting on?", "Could you give me an update, please?", "How are things looking?"],
-            "What's the delay?" => ["What are we waiting for?", "What's holding us up?", "What's causing the delay?"],
-            "Skip the gate delay" => ["Please skip the gate delay.", "Could you skip the simulated delay, please?"],
-            "Yes" => ["Yes please.", "Go ahead, thanks."],
-            _ => [$"{command}, please.", $"{command}, thanks."]
-        };
+        string[] variants = command.StartsWith("Skip to ", StringComparison.Ordinal) ?
+            [$"Could you skip to {command[8..]}, please?", $"Please move straight to {command[8..]}.", $"Skip ahead to {command[8..]}, thanks."] : command switch
+            {
+                "Yes, start services" => ["Please can you start the services?", "Could you get the services going, please?", "Go ahead and start the ground services, thanks."],
+                "Yes, start boarding" => ["Please start boarding.", "Could you begin boarding, please?", "Go ahead and start boarding, thanks."],
+                "Yes, close up" => ["Please close the doors.", "Could you close the doors, please?", "Go ahead and close the doors, thanks."],
+                "Not yet" => ["Not yet, please.", "Not yet, thanks."],
+                "Hold boarding" => ["Please hold off on boarding.", "Could you hold boarding, please?"],
+                "Keep connected" => ["Please keep connected.", "Could you keep connected, please?"],
+                "Are we ready?" => ["How are we getting on?", "Could you give me an update, please?", "How are things looking?"],
+                "What's the delay?" => ["What are we waiting for?", "What's holding us up?", "What's causing the delay?"],
+                "Skip the gate delay" => ["Please skip the gate delay.", "Could you skip the simulated delay, please?"],
+                "Yes" => ["Yes please.", "Go ahead, thanks."],
+                _ => [$"{command}, please.", $"{command}, thanks."]
+            };
         int index = (int)((uint)turn % (uint)variants.Length);
         var intent = LocalIntentParser.Parse(command, context);
         // Never change the meaning of an approval, manual confirmation or recovery command.

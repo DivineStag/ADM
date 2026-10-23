@@ -8,6 +8,32 @@ namespace ADM.Conversation.Tests;
 
 public sealed class NaturalChatTests
 {
+    [Theory]
+    [InlineData("Skip to refuelling", ServiceKind.Refuelling)]
+    [InlineData("Could you skip to fuel, please?", ServiceKind.Refuelling)]
+    [InlineData("Please move straight to boarding", ServiceKind.Boarding)]
+    [InlineData("Jump ahead to catering", ServiceKind.Catering)]
+    public void Skip_to_requests_select_a_service_without_approving_it(string text, ServiceKind service) =>
+        Assert.Equal(new PilotIntent(PilotIntentKind.SkipToService, service), LocalIntentParser.Parse(text, Context()));
+
+    [Theory]
+    [InlineData("Don't skip to fuel")]
+    [InlineData("Skip to boarding if fuel is done")]
+    [InlineData("Skip to fuel and start boarding")]
+    [InlineData("Skip to pushback")]
+    public void Ambiguous_or_unsupported_shortcuts_do_not_authorize(string text) =>
+        Assert.Equal(PilotIntentKind.Unknown, LocalIntentParser.Parse(text, Context()).Kind);
+
+    [Fact]
+    public void Shortcut_button_is_brief_and_all_variants_preserve_intent()
+    {
+        var context = Context();
+        string reply = Assert.Single(LocalConversationEngine.QuickReplies(context), text => text.StartsWith("Skip to ", StringComparison.Ordinal));
+        Assert.Equal("Skip to fuel", QuickChat.Label(reply));
+        for (int turn = 0; turn < 12; turn++)
+            Assert.Equal(LocalIntentParser.Parse(reply, context), LocalIntentParser.Parse(QuickChat.Message(reply, context, turn), context));
+    }
+
     private static OperationalContext Context(QuestionKind? question = null)
     {
         var state = new OperationalScenario().State;

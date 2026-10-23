@@ -37,7 +37,28 @@ public sealed class LocalConversationEngine(PersonaCatalogue catalogue) : IConve
         return new(domainEvent.Name, message, QuickReplies(context));
     }
 
-    public static ImmutableArray<string> QuickReplies(OperationalContext context) => context.Question?.Kind switch
+    public static ImmutableArray<string> QuickReplies(OperationalContext context)
+    {
+        var replies = BaseQuickReplies(context);
+        if (context.Connection != ConnectionState.Connected || context.Session.Stage == WorkflowStage.Completed ||
+            context.Question is { Kind: not QuestionKind.Service }) return replies;
+        bool unresolved(ServiceKind kind)
+        {
+            var state = context.Session.Services[kind].State;
+            if (state is ServiceState.Completed or ServiceState.NotRequired) return false;
+            if (context.Session.Plan.Services[kind].Rule.Required) return true;
+            return state is not (ServiceState.Skipped or ServiceState.Cancelled or ServiceState.CycleEnded);
+        }
+        string? shortcut = ServiceSequence.Ordered(context.Session.Plan)
+            .Where(kind => (kind is ServiceKind.Refuelling or ServiceKind.Catering or ServiceKind.Boarding) &&
+                context.Session.Services[kind].State is ServiceState.Planned or ServiceState.Eligible)
+            .Where(kind => ServiceSequence.Ordered(context.Session.Plan).TakeWhile(earlier => earlier != kind).Any(unresolved) &&
+                !ServiceSequence.Ordered(context.Session.Plan).TakeWhile(earlier => earlier != kind).Any(earlier => unresolved(earlier) && context.Session.Plan.Services[earlier].Rule.Required))
+            .Select(kind => "Skip to " + (kind == ServiceKind.Refuelling ? "fuel" : kind.ToString().ToLowerInvariant())).FirstOrDefault();
+        return shortcut is null ? replies : [.. replies, shortcut];
+    }
+
+    private static ImmutableArray<string> BaseQuickReplies(OperationalContext context) => context.Question?.Kind switch
     {
         _ when context.Session.Stage == WorkflowStage.Completed => [],
         QuestionKind.ServicesStart => ["Yes, start services", "Not yet"],

@@ -1,9 +1,10 @@
 #Requires -Version 7.0
 param(
-    [string]$Version = '0.8.0-beta.7',
+    [string]$Version = '0.8.0-beta.8',
     [string]$Repository = 'DivineStag/ADM',
     [string]$CompilerPath = '',
-    [string]$SignCommand = ''
+    [string]$SignCommand = '',
+    [switch]$ForRelease
 )
 $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$') { throw 'Use a semantic version.' }
@@ -41,6 +42,7 @@ foreach ($runtime in @('microsoft.netcore.app.runtime.win-x64','microsoft.window
     }
 }
 $compilerArguments = @('/Qp',"/DPayload=$payload","/DOutput=$releaseRoot","/DVersion=$Version","/DRepository=$Repository")
+if ($ForRelease) { $compilerArguments += '/DReleaseBuild=yes' }
 if ($SignCommand) { $compilerArguments += @('/DSignCommand=yes',('/sADMSign=' + $SignCommand)) }
 & $CompilerPath @compilerArguments (Join-Path $workspaceRoot 'installer\ADM.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compile failed.' }
@@ -50,4 +52,4 @@ $hash | Set-Content -LiteralPath ($setup + '.sha256')
 [pscustomobject]@{ Installer=$setup; Sha256=$hash; Payload=$payload; Version=$Version; Repository=$Repository; Distribution='Local qualification only until release gates pass' } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $workspaceRoot 'artifacts\m8-setup.json')
 Write-Output ('Windows setup ready: ' + $setup)
-Write-Output 'No public upload performed. Public-release licensing, signing and live qualification remain separate gates.'
+Write-Output 'No public upload performed. Runtime redistribution and live qualification remain separate gates. Signing is optional.'

@@ -119,6 +119,7 @@ public sealed class LocalDispatchSession
                 PilotIntentKind.ApproveClosure => PilotDirective.ApproveClosure,
                 PilotIntentKind.HoldClosure => PilotDirective.HoldClosure,
                 PilotIntentKind.SkipService => PilotDirective.Skip,
+                PilotIntentKind.SkipToService => PilotDirective.SkipTo,
                 PilotIntentKind.CancelService => PilotDirective.Cancel,
                 PilotIntentKind.ResumeService => PilotDirective.Resume,
                 PilotIntentKind.SkipSimulatedDelay => PilotDirective.SkipSimulatedDelay,
@@ -190,7 +191,8 @@ public static class DispatchCheckpointCodec
             checkpoint.State.ServicePermissionEvidence is null || checkpoint.State.PilotOverrides is null || checkpoint.State.ServiceCompletionChecks is null ||
             checkpoint.State.ServiceCompletionChecks.Any(kind => !Enum.IsDefined(kind)) || checkpoint.State.ValidatedConcurrentGroups.IsDefault ||
             checkpoint.State.ValidatedConcurrentGroups.Any(group => group is null || group.Contains(ServiceKind.Boarding) || group.Any(kind => !Enum.IsDefined(kind))) ||
-            !Enum.IsDefined(session.Stage) || !Enum.IsDefined(checkpoint.State.Connection))
+            !Enum.IsDefined(session.Stage) || !Enum.IsDefined(checkpoint.State.Connection) ||
+            checkpoint.State.SkipToTarget is { } target && (!Enum.IsDefined(target) || target == ServiceKind.Deboarding))
             throw new ArgumentException("Checkpoint schema or required fields are invalid.");
         if (session.Services.Count != 7 || session.Services.Any(pair => pair.Value is null || pair.Key != pair.Value.Kind ||
             pair.Value.SessionId != session.Id || !Enum.IsDefined(pair.Value.State) || pair.Value.State == ServiceState.Completed && !OperationalReducer.EvidenceValid(pair.Value.LastEvidence) ||

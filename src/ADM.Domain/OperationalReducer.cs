@@ -325,7 +325,7 @@ public static class OperationalReducer
                         state.Session.Stage == WorkflowStage.AwaitingClosureApproval ? "Boarding is complete. Waiting for your closure instruction." : DelayDescription(state));
                     return;
                 case PilotDirective.Delay: Say(DelayDescription(state)); return;
-                case PilotDirective.Help: Say("You can ask for status or delay, skip a planned service, cancel an active service, resume a service, or reply to the current approval question."); return;
+                case PilotDirective.Help: Say("You can ask for status or delay, say 'skip to refuelling', skip a planned service, cancel or restart a service, or reply to the current approval question."); return;
                 case PilotDirective.Unknown: Say("Please clarify the service or reply to the current question."); return;
                 case PilotDirective.KeepService:
                     if (state.Question?.Kind == QuestionKind.MandatorySkip && state.Question.Service == kind)
@@ -421,6 +421,38 @@ public static class OperationalReducer
                     return;
             }
             if (kind is null || !state.Session.Services.TryGetValue(kind.Value, out var service)) { Say("Which service do you mean?"); return; }
+            if (instruction.Directive == PilotDirective.SkipTo)
+            {
+                if (kind == ServiceKind.Deboarding || state.Connection != ConnectionState.Connected ||
+                    state.RequiresServiceStartApproval && state.ServiceStartApproval is null)
+                { Say("Let me get connected and have your service-start approval first."); return; }
+                if (state.Session.Services[ServiceKind.Boarding].State is ServiceState.RequestPending or ServiceState.Requested or ServiceState.Active or ServiceState.Completed)
+                { Say("We've already reached boarding. I won't jump back or change earlier services."); return; }
+                if (service.State is not (ServiceState.Planned or ServiceState.Eligible))
+                { Say($"{kind} is already requested or resolved. Nothing has been restarted; ask me to restart it if needed."); return; }
+                var earlier = ServiceSequence.Ordered(state.Session.Plan).TakeWhile(item => item != kind.Value).Where(item => !Resolved(item)).ToArray();
+                var required = earlier.Where(item => state.Session.Plan.Services[item].Rule.Required).ToArray();
+                if (required.Length > 0)
+                { Say($"I can't jump past required work: {string.Join(", ", required)}. That needs to be resolved before we move on."); return; }
+                if (earlier.Any(item => state.Session.Services[item].State is ServiceState.RequestPending or ServiceState.Unknown or ServiceState.Failed) ||
+                    earlier.Any(state.ServiceCompletionChecks.Contains))
+                { Say("An earlier service has an uncertain state. Let's reconcile it first; I won't guess that it stopped or finished."); return; }
+                if (earlier.Length == 0) { Say($"There's nothing left to skip before {kind.ToString()!.ToLowerInvariant()}. I'll continue when its prerequisites and GSX are ready."); return; }
+                Invalidate();
+                state = state with { SkipToTarget = kind, PilotOverrides = state.PilotOverrides.Union(earlier) };
+                foreach (var skipped in earlier)
+                {
+                    var current = state.Session.Services[skipped].State;
+                    if (current is ServiceState.Planned or ServiceState.Eligible)
+                        SetService(skipped, ServiceState.Skipped, new(EvidenceSource.User, $"Pilot skip-to {kind}: {metadata.EventId}", metadata.OccurredAt));
+                    else if (current is ServiceState.Requested or ServiceState.Active && state.CancellableServices.Contains(skipped))
+                        Queue(OperationalCommandKind.CancelService, skipped);
+                }
+                bool waiting = earlier.Any(item => !Resolved(item));
+                Say(waiting ? $"I'll head to {kind.ToString()!.ToLowerInvariant()} after the earlier services stop or finish. Planned optional work has been skipped; any supported cancellation still needs GSX confirmation."
+                    : $"Earlier optional services skipped. I'll move on to {kind.ToString()!.ToLowerInvariant()} when its prerequisites and GSX are ready.");
+                return;
+            }
             if (instruction.Directive == PilotDirective.Resume && kind == ServiceKind.Boarding && state.Session.Holds.Any(hold => hold.IsActive && hold.Kind == HoldKind.ManualPilotHold && hold.Scope == HoldScope.Boarding))
             {
                 Invalidate();
@@ -516,6 +548,12 @@ public static class OperationalReducer
             { SetStage(WorkflowStage.Boarding); return; }
             if (state.Session.Holds.Any(hold => hold.IsActive && !hold.IsSimulated && hold.Scope == HoldScope.AllOperations))
             { SetStage(WorkflowStage.PreBoardServices); return; }
+            if (state.SkipToTarget is { } skipTarget)
+            {
+                if (ServiceSequence.Ordered(state.Session.Plan).TakeWhile(kind => kind != skipTarget).Any(kind => !Resolved(kind)))
+                { SetStage(WorkflowStage.PreBoardServices); return; }
+                state = state with { SkipToTarget = null };
+            }
             foreach (var kind in ServiceSequence.Ordered(state.Session.Plan).Where(kind => kind != ServiceKind.Boarding))
             {
                 var service = state.Session.Services[kind];

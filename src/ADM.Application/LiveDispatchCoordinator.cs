@@ -280,7 +280,7 @@ public sealed class LiveDispatchCoordinator(IGsxGateway gateway, IGsxLiveState l
         {
             if (_runtime is null) return;
             var intent = conversation.Parse(message, _runtime.Context);
-            if (intent.Kind is PilotIntentKind.ApproveServicesStart or PilotIntentKind.ApproveBoarding or PilotIntentKind.ApproveClosure or PilotIntentKind.ConfirmRelease or PilotIntentKind.ConfirmServiceCompletion)
+            if (intent.Kind is PilotIntentKind.ApproveServicesStart or PilotIntentKind.ApproveBoarding or PilotIntentKind.ApproveClosure or PilotIntentKind.ConfirmRelease or PilotIntentKind.ConfirmServiceCompletion or PilotIntentKind.SkipToService)
             {
                 try { ValidateEnvironment(simulator, live.Snapshot, _flight!, _aircraft); }
                 catch (InvalidOperationException exception) { await SuspendAsync(exception.Message, ct).ConfigureAwait(false); return; }

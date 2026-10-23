@@ -2,7 +2,7 @@
   #error Payload must name the self-contained publish directory
 #endif
 #ifndef Version
-  #define Version "0.8.0-beta.7"
+  #define Version "0.8.0-beta.8"
 #endif
 #ifndef Output
   #define Output "."
@@ -39,7 +39,7 @@ RestartApplications=no
 AppMutex=ADM.Desktop.SingleInstance
 SetupMutex=ADM.Desktop.Setup
 DisableWelcomePage=no
-#ifdef SignCommand
+#ifdef ReleaseBuild
 InfoBeforeFile=release-notice.txt
 #else
 InfoBeforeFile=beta-notice.txt

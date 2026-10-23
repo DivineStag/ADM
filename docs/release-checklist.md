@@ -1,9 +1,10 @@
-# Release checklist — current candidate beta.7
+# Release checklist — current candidate beta.8
 
 The latest readiness review is [public-release-readiness.md](public-release-readiness.md). Earlier milestone reports retain historical evidence and are superseded where the owner changed the product requirements.
 
 - [x] Chat/Profiles/Flight/Settings, simplified recovery, no Open GSX browser shortcut.
 - [x] Local conversation, polite commands, brief varied quick replies and random 1–5 second presentation delays.
+- [x] Skip-to service shortcuts follow profile order, wait for observed cancellation/completion and retain required fuel and boarding approval.
 - [x] Separate outgoing/incoming sound playback, mute/volume handling and media provenance/notices.
 - [x] Boarding approval also confirms manual gate readiness; real holds and fuel/service evidence remain enforced.
 - [x] Final door question is conversational: approval ends ADM without equipment commands or fabricated door-clear evidence.
@@ -12,7 +13,8 @@ The latest readiness review is [public-release-readiness.md](public-release-read
 - [x] Automated build/tests and local WPF/audio/delay acceptance; evidence recorded in current readiness report.
 - [x] Owner reports successful fresh-machine installation of the preceding setup.
 - [ ] Confirm exact SimConnect binary redistribution permission.
-- [ ] Configure signed Windows release runner/environment; current local package is unsigned.
+- [x] Unsigned distribution selected by the owner; no signing secret or certificate is required.
+- [ ] Configure the Windows packaging runner/environment or prepare the release locally.
 - [ ] Complete this candidate's live aircraft/recovery/consecutive-sector matrix and clean-machine Start/Apps/repair checks.
 - [x] Remote Windows CI is configured with tests, dependency review and WPF checks. Require a green run on the exact candidate before publication; see https://github.com/DivineStag/ADM/actions .
 - [ ] Review draft assets, licence notices and checksum, then explicitly publish a stable release.

@@ -4,9 +4,9 @@ Repository: https://github.com/DivineStag/ADM. The connected account is DivineSt
 
 Source transfer includes the solution, application/test code, 25 default profiles, generated notification WAV, supplied logo/icon, build scripts and documentation. Excluded: SDK/vendor client binaries, build outputs, installers, personal operational databases/logs, account credentials and the optional incoming MP3 (public source uses the original WAV fallback). Local playback still prefers that MP3 when present; public checkouts use ADM's original generated tone. No third-party SDK is committed.
 
-The Windows foundation workflow builds and tests on hosted Windows without needing the SDK. Live release packaging remains an explicit protected workflow on the developer release runner with the official SDK and signing configured. It creates a draft; no installer is automatically published by pushing source.
+The Windows foundation workflow builds and tests on hosted Windows without needing the SDK. Live release packaging remains an explicit protected workflow on the developer release runner with the official SDK. The owner selected unsigned distribution; no signing configuration is required. It creates a draft; no installer is automatically published by pushing source.
 
-An empty/no-stable-release repository shows “No public release is available yet”, not “up to date”. Once a qualified stable ADM-Setup.exe is published with a GitHub SHA-256 digest, configured builds can check/download it using existing validation. No public release has been created during setup. The owner selected the ADM freeware licence with source reuse rights reserved. Runtime redistribution, signing and final live qualification remain separate gates.
+An empty/no-stable-release repository shows “No public release is available yet”, not “up to date”. Once a qualified stable ADM-Setup.exe is published with a GitHub SHA-256 digest, configured builds can check/download it using existing validation. No public release has been created during setup. The owner selected the ADM freeware licence with source reuse rights reserved. Runtime redistribution and final live qualification remain separate gates.
 
 ## Verification and upload status
 

@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 namespace ADM.Domain;
 
 public enum QuestionKind { None, Boarding, Closure, Service, MandatorySkip, GateCheck, FuelCheck, ManualRelease, ServiceCompletion, ServicesStart }
-public enum PilotDirective { Status, Delay, ApproveBoarding, HoldBoarding, ApproveClosure, HoldClosure, Skip, ConfirmSkip, Cancel, Resume, ApproveService, SkipSimulatedDelay, ConfirmGate, ConfirmFuel, ConfirmRelease, Help, Unknown, KeepService, ConfirmServiceCompletion, ApproveServicesStart, HoldServicesStart }
+public enum PilotDirective { Status, Delay, ApproveBoarding, HoldBoarding, ApproveClosure, HoldClosure, Skip, ConfirmSkip, Cancel, Resume, ApproveService, SkipSimulatedDelay, ConfirmGate, ConfirmFuel, ConfirmRelease, Help, Unknown, KeepService, ConfirmServiceCompletion, ApproveServicesStart, HoldServicesStart, SkipTo }
 public enum ReleaseAction { Doors, JetwayOrStairs, GroundEquipment }
 public enum OperationalCommandKind { RequestService, CancelService, ReleaseEquipment }
 public enum CommandOutcome { Accepted, Rejected, Unknown }
@@ -23,6 +23,7 @@ public sealed record OperationalState(GroundHandlingSession Session, ConnectionS
     PendingQuestion? Question, ServiceKind? FocusService, bool FuelAttested, bool ClosureHeld)
 {
     public ImmutableHashSet<ServiceKind> PilotOverrides { get; init; } = [];
+    public ServiceKind? SkipToTarget { get; init; }
     public bool RequiresServiceStartApproval { get; init; }
     public bool GsxFlightPlanReceived { get; init; }
     public bool PlannedLoadFiguresReceived { get; init; }

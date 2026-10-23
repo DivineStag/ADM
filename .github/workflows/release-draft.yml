@@ -1,4 +1,4 @@
-name: Build signed release draft
+name: Build release draft
 on:
   workflow_dispatch:
     inputs:
@@ -37,17 +37,13 @@ jobs:
           ./scripts/Test-DependencySecurity.ps1
           ./scripts/Test-DesktopStartup.ps1 -Configuration Release
           ./scripts/Test-DesktopUi.ps1 -Configuration Release
-      - name: Build conventional signed installer
+      - name: Build conventional unsigned installer
         shell: pwsh
         env:
           ADM_VERSION: ${{ inputs.version }}
           ADM_REPOSITORY: ${{ github.repository }}
-          ADM_SIGN_COMMAND: ${{ secrets.ADM_SIGN_COMMAND }}
         run: |
-          if (-not $env:ADM_SIGN_COMMAND) { throw 'Configure signing in the protected release environment.' }
-          ./scripts/Publish-Installer.ps1 -Version $env:ADM_VERSION -Repository $env:ADM_REPOSITORY -SignCommand $env:ADM_SIGN_COMMAND
-          $package = Get-Content artifacts/m8-setup.json -Raw | ConvertFrom-Json
-          if ((Get-AuthenticodeSignature -LiteralPath $package.Installer).Status -ne 'Valid') { throw 'Installer signature is not valid.' }
+          ./scripts/Publish-Installer.ps1 -Version $env:ADM_VERSION -Repository $env:ADM_REPOSITORY -ForRelease
       - name: Create draft for human review
         shell: pwsh
         env:

@@ -76,6 +76,8 @@ public static partial class LocalIntentParser
         if (text == "confirm boarding complete") return new(PilotIntentKind.ConfirmServiceCompletion, ServiceKind.Boarding);
         if (text is "confirm skip" or "skip it" && context.Question?.Kind == QuestionKind.MandatorySkip) return Answer(context.Question);
         var request = ServiceCommand().Match(text);
+        var jump = SkipToCommand().Match(text);
+        if (jump.Success && Services.TryGetValue(jump.Groups[1].Value, out var target)) return new(PilotIntentKind.SkipToService, target);
         if (request.Success)
         {
             string name = request.Groups[2].Value;
@@ -122,4 +124,5 @@ public static partial class LocalIntentParser
     [GeneratedRegex("\\s+", RegexOptions.CultureInvariant)] private static partial Regex Whitespace();
     [GeneratedRegex("^(skip|cancel|stop|resume|restart|start|actually do|do) (?:the )?([a-z]+)$", RegexOptions.CultureInvariant)] private static partial Regex ServiceCommand();
     [GeneratedRegex("^no ([a-z]+) (?:is )?needed$", RegexOptions.CultureInvariant)] private static partial Regex NotNeeded();
+    [GeneratedRegex("^(?:skip|jump|move)(?: (?:straight|ahead))? to (?:the )?([a-z]+)$", RegexOptions.CultureInvariant)] private static partial Regex SkipToCommand();
 }

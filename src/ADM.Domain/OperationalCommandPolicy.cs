@@ -18,6 +18,7 @@ public static class OperationalCommandPolicy
         if (command.Service is not { } kind || !state.Session.Services.TryGetValue(kind, out var service)) return false;
         if (command.Kind == OperationalCommandKind.CancelService)
             return service.State == ServiceState.CancelPending && state.CancellableServices.Contains(kind);
+        if (state.SkipToTarget is { } target && ServiceSequence.Ordered(state.Session.Plan).TakeWhile(item => item != target).Any(item => !Resolved(state, item))) return false;
         if (!state.SupportedServices.Contains(kind) || service.State != ServiceState.RequestPending) return false;
         if (state.TriggerableServices is { } available && !available.Contains(kind)) return false;
         // Recheck dependencies at the last possible moment; planned concurrency never grants readiness.

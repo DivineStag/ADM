@@ -1,5 +1,7 @@
 ADM - Aircraft Dispatch Manager
 
+This release is unsigned. Windows may display an unknown-publisher warning.
+
 ADM is freeware. You may use official releases free of charge. Source reuse and
 redistribution require permission under the accompanying ADM freeware licence.
 Third-party components and sounds retain their own licence terms.
